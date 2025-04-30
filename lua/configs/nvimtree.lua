@@ -19,3 +19,4 @@ local nvchad_opts = require "nvchad.configs.nvimtree"
 return vim.tbl_deep_extend("force", nvchad_opts, {
   on_attach = my_on_attach,
 })
+

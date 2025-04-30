@@ -15,8 +15,9 @@ map("n", "gr", "<cmd> lua vim.lsp.buf.references() <cr>", { desc = "LSP go to re
 map("n", "<leader>fr", "<cmd> Telescope resume <CR>", { desc = "telescope resume last search" })
 
 -- Auto-session mappings
-map("n", "<leader>fs", function() require("auto-session.session-lens").search_session() end, 
-    { noremap = true, desc = "search session" })
+map("n", "<leader>fs", function()
+  require("auto-session.session-lens").search_session()
+end, { noremap = true, desc = "search session" })
 map("n", "<leader>ws", "<cmd>SessionSave<CR>", { desc = "save session" })
 map("n", "<leader>wr", "<cmd>SessionRestore<CR>", { desc = "restore session" })
 map("n", "<leader>wd", "<cmd>SessionDelete<CR>", { desc = "delete session" })
@@ -26,9 +27,9 @@ map("i", "<C-V>", "<Plug>(copilot-accept-word)", { desc = "copilot accept word" 
 
 -- Open current file in VSCode
 map("n", "<leader>ox", function()
-  local file_path = vim.fn.expand("%:p")
+  local file_path = vim.fn.expand "%:p"
   if file_path ~= "" then
-    vim.fn.system('code --goto "' .. file_path .. ':' .. vim.fn.line(".") .. '"')
+    vim.fn.system('code --goto "' .. file_path .. ":" .. vim.fn.line "." .. '"')
   else
     vim.notify("No file is open", vim.log.levels.WARN)
   end

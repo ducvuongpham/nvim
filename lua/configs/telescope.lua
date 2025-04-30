@@ -28,7 +28,7 @@ nvchad_telescope.defaults.history = {
 }
 
 -- Load the smart_history extension
-require('telescope').load_extension('smart_history')
-require('telescope').load_extension('fzf')
+require("telescope").load_extension "smart_history"
+require("telescope").load_extension "fzf"
 
 return nvchad_telescope
