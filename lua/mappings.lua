@@ -11,6 +11,18 @@ map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
 map("n", "gr", "<cmd> lua vim.lsp.buf.references() <cr>", { desc = "LSP go to references" })
 
+map("n", "<leader>fr", "<cmd> Telescope resume <CR>", { desc = "telescope resume last search" })
+
+-- Open current file in VSCode
+map("n", "<leader>ox", function()
+  local file_path = vim.fn.expand("%:p")
+  if file_path ~= "" then
+    vim.fn.system('code --goto "' .. file_path .. ':' .. vim.fn.line(".") .. '"')
+  else
+    vim.notify("No file is open", vim.log.levels.WARN)
+  end
+end, { desc = "Open current file in eXternal VSCode" })
+
 -- -- LazyGit with file focus
 -- map("n", "<leader>gf", function()
 --   local current_file = vim.fn.expand("%:p")
