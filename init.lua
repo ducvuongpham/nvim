@@ -34,4 +34,7 @@ require "nvchad.autocmds"
 
 vim.schedule(function()
   require "mappings"
+  
+  -- Load custom cmp configuration after mappings to override NvChad's defaults
+  require("configs.cmp").setup()
 end)
