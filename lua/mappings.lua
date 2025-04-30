@@ -11,7 +11,18 @@ map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
 map("n", "gr", "<cmd> lua vim.lsp.buf.references() <cr>", { desc = "LSP go to references" })
 
+-- Telescope mappings
 map("n", "<leader>fr", "<cmd> Telescope resume <CR>", { desc = "telescope resume last search" })
+
+-- Auto-session mappings
+map("n", "<leader>fs", function() require("auto-session.session-lens").search_session() end, 
+    { noremap = true, desc = "search session" })
+map("n", "<leader>ws", "<cmd>SessionSave<CR>", { desc = "save session" })
+map("n", "<leader>wr", "<cmd>SessionRestore<CR>", { desc = "restore session" })
+map("n", "<leader>wd", "<cmd>SessionDelete<CR>", { desc = "delete session" })
+
+-- Copilot mappings
+map("i", "<C-V>", "<Plug>(copilot-accept-word)", { desc = "copilot accept word" })
 
 -- Open current file in VSCode
 map("n", "<leader>ox", function()
@@ -23,19 +34,7 @@ map("n", "<leader>ox", function()
   end
 end, { desc = "Open current file in eXternal VSCode" })
 
--- -- LazyGit with file focus
--- map("n", "<leader>gf", function()
---   local current_file = vim.fn.expand("%:p")
---   if current_file ~= "" then
---     vim.cmd("terminal lazygit -f " .. vim.fn.shellescape(current_file))
---   else
---     vim.cmd("terminal lazygit")
---   end
---   vim.cmd("startinsert")
--- end, { desc = "LazyGit focus on current file" })
-
--- -- Regular LazyGit
--- map("n", "<leader>gg", function()
---   vim.cmd("terminal lazygit")
---   vim.cmd("startinsert")
--- end, { desc = "Open LazyGit" })
+-- Uncomment if you want to use these dropbar mappings
+-- map('n', '<Leader>;', function() require('dropbar.api').pick() end, { desc = 'pick symbols in winbar' })
+-- map('n', '[;', function() require('dropbar.api').goto_context_start() end, { desc = 'go to start of current context' })
+-- map('n', '];', function() require('dropbar.api').select_next_context() end, { desc = 'select next context' })

@@ -21,20 +21,6 @@ return {
           previewer = false,
         },
       }
-
-      vim.keymap.set("n", "<leader>fs", require("auto-session.session-lens").search_session, {
-        noremap = true,
-        desc = "Search Session",
-      })
-      vim.keymap.set("n", "<leader>ws", "<cmd>SessionSave<CR>", {
-        desc = "Save Session",
-      })
-      vim.keymap.set("n", "<leader>wr", "<cmd>SessionRestore<CR>", {
-        desc = "Restore Session",
-      })
-      vim.keymap.set("n", "<leader>wd", "<cmd>SessionDelete<CR>", {
-        desc = "Delete Session",
-      })
     end,
   },
 
