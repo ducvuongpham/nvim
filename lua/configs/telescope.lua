@@ -22,10 +22,18 @@ nvchad_telescope.defaults.mappings = {
   },
 }
 
+-- Set up history database path and limit
+local db_path = "~/.local/share/nvim/databases/telescope_history.sqlite3"
 nvchad_telescope.defaults.history = {
-  path = "~/.local/share/nvim/databases/telescope_history.sqlite3",
+  path = db_path,
   limit = 500,
 }
+
+-- Create the database directory if it doesn't exist
+local history_dir = vim.fn.expand("~/.local/share/nvim/databases")
+if vim.fn.isdirectory(history_dir) == 0 then
+  vim.fn.mkdir(history_dir, "p")
+end
 
 -- Load the smart_history extension
 require("telescope").load_extension "smart_history"
