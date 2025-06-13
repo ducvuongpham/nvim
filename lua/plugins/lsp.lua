@@ -7,19 +7,19 @@ return {
     end,
   },
 
-  {
-    "williamboman/mason.nvim",
-    opts = {
-      ensure_installed = {
-        "eslint-lsp",
-        "prettier",
-        "js-debug-adapter",
-        "typescript-language-server",
-        "html-lsp",
-        "css-lsp",
-      },
-    },
-  },
+  -- {
+  --   "williamboman/mason.nvim",
+  --   opts = {
+  --     ensure_installed = {
+  --       "eslint-lsp",
+  --       "prettier",
+  --       "js-debug-adapter",
+  --       "typescript-language-server",
+  --       "html-lsp",
+  --       "css-lsp",
+  --     },
+  --   },
+  -- },
 
   {
     "nvimtools/none-ls.nvim",
