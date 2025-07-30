@@ -74,8 +74,71 @@ return {
         "vimdoc",
         "html",
         "css",
+        "javascript",
+        "typescript",
+        "tsx",
+        "python",
+        "go",
+        "rust",
+        "c",
+        "cpp",
+        "bash",
+        "json",
+        "yaml",
+        "markdown",
+        "markdown_inline",
+      },
+      highlight = {
+        enable = true,
+        use_languagetree = true,
+        additional_vim_regex_highlighting = false,
+      },
+      indent = {
+        enable = true,
+      },
+      incremental_selection = {
+        enable = true,
+        keymaps = {
+          init_selection = "<C-space>",
+          node_incremental = "<C-space>",
+          scope_incremental = false,
+          node_decremental = "<bs>",
+        },
       },
     },
+  },
+
+  {
+    "HiPhish/rainbow-delimiters.nvim",
+    dependencies = "nvim-treesitter/nvim-treesitter",
+    event = "BufRead",
+    config = function()
+      local rainbow_delimiters = require("rainbow-delimiters")
+
+      require("rainbow-delimiters.setup").setup {
+        strategy = {
+          [""] = rainbow_delimiters.strategy["global"],
+          vim = rainbow_delimiters.strategy["local"],
+        },
+        query = {
+          [""] = "rainbow-delimiters",
+          lua = "rainbow-blocks",
+        },
+        priority = {
+          [""] = 110,
+          lua = 210,
+        },
+        highlight = {
+          "RainbowDelimiterRed",
+          "RainbowDelimiterYellow",
+          "RainbowDelimiterBlue",
+          "RainbowDelimiterOrange",
+          "RainbowDelimiterGreen",
+          "RainbowDelimiterViolet",
+          "RainbowDelimiterCyan",
+        },
+      }
+    end,
   },
 
   {
@@ -95,5 +158,30 @@ return {
   {
     "stevearc/dressing.nvim",
     event = "VeryLazy",
+  },
+
+  {
+    "rhysd/clever-f.vim",
+    event = "BufRead",
+    config = function()
+      -- Enable clever-f
+      vim.g.clever_f_intelligent_case = 1
+      vim.g.clever_f_fix_key_direction = 1
+      vim.g.clever_f_show_prompt = 1
+      vim.g.clever_f_mark_char = 1
+    end,
+  },
+
+  {
+    "kylesnowschwartz/prompt-tower.nvim",
+    cmd = { "PromptTower", "PromptTowerSelect", "PromptTowerGenerate", "PromptTowerClear" },
+    config = function()
+      require("prompt-tower").setup {
+        -- You can customize these options if needed
+        -- ignore_patterns = { "*.git/*", "node_modules/*" },
+        -- format = "xml", -- Options: "xml", "markdown", "minimal"
+        -- include_tree = true,
+      }
+    end,
   },
 }

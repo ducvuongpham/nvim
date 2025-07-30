@@ -35,7 +35,65 @@ map("n", "<leader>ox", function()
   end
 end, { desc = "Open current file in eXternal VSCode" })
 
+-- Format entire file (normal mode)
+map("n", "<leader>fm", function()
+  require("conform").format { async = true, lsp_fallback = true }
+end, { desc = "Format file" })
+
+-- Format selection (visual mode)
+map("v", "<leader>fm", function()
+  -- First try LSP range formatting
+  local clients = vim.lsp.get_active_clients { bufnr = 0 }
+  local range_client = nil
+
+  for _, client in ipairs(clients) do
+    if client.server_capabilities.documentRangeFormattingProvider then
+      range_client = client
+      break
+    end
+  end
+
+  if range_client then
+    -- Use LSP range formatting (more reliable)
+    vim.lsp.buf.format { async = true }
+    vim.notify("Formatted with LSP range formatting", vim.log.levels.INFO)
+  else
+    -- Fallback: Inform user and ask
+    local choice = vim.fn.confirm(
+      "Range formatting not reliably supported by Prettier.\nPrettier will format entire file.",
+      "&Format entire file\n&Cancel",
+      1
+    )
+
+    if choice == 1 then
+      require("conform").format { async = true, lsp_fallback = true }
+      vim.notify("Formatted entire file", vim.log.levels.INFO)
+    end
+  end
+end, { desc = "Format selection (with fallback)" })
+
+-- DiffFormat: Format only git hunks
+map("n", "<leader>fh", function()
+  require("configs.diff-format").format_hunks()
+end, { desc = "Format git hunks (range method)" })
+
+map("n", "<leader>fH", function()
+  require("configs.diff-format").format_hunks_simple()
+end, { desc = "Format git hunks (simple method)" })
+
+map("n", "<leader>fv", function()
+  require("configs.diff-format").show_hunks()
+end, { desc = "View git hunks" })
+
+map("n", "<leader>ft", function()
+  require("configs.diff-format").test()
+end, { desc = "Test DiffFormat (debug)" })
+
+map("n", "<leader>fg", function()
+  require("configs.diff-format").git_status()
+end, { desc = "Check git status" })
+
 -- Uncomment if you want to use these dropbar mappings
 -- map('n', '<Leader>;', function() require('dropbar.api').pick() end, { desc = 'pick symbols in winbar' })
 -- map('n', '[;', function() require('dropbar.api').goto_context_start() end, { desc = 'go to start of current context' })
--- map('n', '];', function() require('dropbar.api').select_next_context() end, { desc = 'select next context' })
+-- map('n', '];', function() require('dropbar.api').select_next_context' end, { desc = 'select next context' })
