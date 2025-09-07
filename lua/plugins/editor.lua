@@ -113,7 +113,7 @@ return {
     dependencies = "nvim-treesitter/nvim-treesitter",
     event = "BufRead",
     config = function()
-      local rainbow_delimiters = require("rainbow-delimiters")
+      local rainbow_delimiters = require "rainbow-delimiters"
 
       require("rainbow-delimiters.setup").setup {
         strategy = {
@@ -181,6 +181,29 @@ return {
         -- ignore_patterns = { "*.git/*", "node_modules/*" },
         -- format = "xml", -- Options: "xml", "markdown", "minimal"
         -- include_tree = true,
+      }
+    end,
+  },
+
+  {
+    "chrisgrieser/nvim-early-retirement",
+    event = "VeryLazy",
+    config = function()
+      require("early-retirement").setup {
+        -- Maximum number of buffers to keep open
+        retirementAgeMins = 0, -- Retire buffers after 10 minutes of inactivity
+
+        -- Filetypes to never retire
+        ignoredFiletypes = {},
+
+        -- Retire buffers when you have more than this many open
+        minimumBufferNum = 6, -- Only start retiring when you have more than 10 buffers
+
+        -- Don't retire modified buffers
+        deleteBufferWhenFileDeleted = false,
+
+        -- Custom notification when a buffer is retired
+        notificationOnAutoClose = true,
       }
     end,
   },

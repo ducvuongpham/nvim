@@ -1,14 +1,16 @@
 return {
   adapters = {
-    copilot = function()
-      return require("codecompanion.adapters").extend("copilot", {
-        schema = {
-          model = {
-            default = "gemini-2.5-pro",
+    http = {
+      copilot = function()
+        return require("codecompanion.adapters").extend("copilot", {
+          schema = {
+            model = {
+              default = "gemini-2.5-pro",
+            },
           },
-        },
-      })
-    end,
+        })
+      end,
+    },
   },
   display = {
     chat = {
@@ -50,11 +52,11 @@ return {
     },
   },
   tools = {
-    ["vectorcode"] = {
-      module = "vectorcode.codecompanion",
-      description = "VectorCode context retrieval for better AI understanding",
-      enabled = true,
-    },
+    -- ["vectorcode"] = {
+    --   module = "vectorcode.codecompanion",
+    --   description = "VectorCode context retrieval for better AI understanding",
+    --   enabled = true,
+    -- },
     ["mcp_tools"] = {
       module = "mcphub.codecompanion",
       description = "MCP server tools integration",
