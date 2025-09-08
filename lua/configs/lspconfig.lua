@@ -4,8 +4,9 @@ local lspconfig = require "lspconfig"
 nvlsp.defaults() -- loads nvchad's defaults
 
 -- Common command prefix for Node.js-based LSP servers
-local function get_mise_node_cmd(cmd)
-  return { "mise", "x", "node@latest", "--", "/Users/pc391/.local/share/nvim/mason/bin/typescript-language-server", "--stdio" }
+local function get_mise_node_cmd(cmd_name)
+  local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/" .. cmd_name
+  return { "mise", "x", "node@latest", "--", mason_bin, "--stdio" }
 end
 
 local servers = {
