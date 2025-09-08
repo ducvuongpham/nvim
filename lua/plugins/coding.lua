@@ -26,7 +26,18 @@ return {
       { "ravitemer/mcphub.nvim", lazy = true },
     },
     opts = function()
-      return require("configs.codecompanion")
+      return require "configs.codecompanion"
+    end,
+  },
+  {
+    "coder/claudecode.nvim",
+    lazy = false,
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "folke/snacks.nvim",
+    },
+    config = function()
+      require("claudecode").setup {}
     end,
   },
 }
