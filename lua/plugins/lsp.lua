@@ -11,12 +11,44 @@ return {
     "williamboman/mason.nvim",
     opts = {
       ensure_installed = {
-        "eslint-lsp",
+        -- JavaScript/TypeScript
         "prettier",
         "js-debug-adapter",
         "typescript-language-server",
-        "html-lsp",
-        "css-lsp",
+        "html-lsp", -- Contains vscode-eslint-language-server
+        "css-lsp", -- Contains vscode-eslint-language-server
+        "json-lsp", -- Contains vscode-eslint-language-server
+
+        -- Go
+        "gopls",
+        "goimports",
+        "gofumpt",
+        "golangci-lint",
+
+        -- C/C++
+        "clangd",
+        "clang-format",
+
+        -- Python
+        "pyright",
+        "black",
+        "isort",
+        "ruff",
+
+        -- Rust
+        "rust-analyzer",
+        "rustfmt",
+
+        -- Lua
+        "lua-language-server",
+        "stylua",
+
+        -- Other useful tools
+        "json-lsp",
+        "yaml-language-server",
+        "marksman", -- Markdown LSP
+        "shellcheck", -- Shell script linting
+        "shfmt", -- Shell script formatting
       },
     },
   },
@@ -30,12 +62,7 @@ return {
       "nvimtools/none-ls-extras.nvim",
     },
     opts = function()
-      -- The path needs to be adjusted for your configuration
-      -- If you create a configs/null-ls.lua file, uncomment this:
-      -- return require "configs.null-ls"
-
-      -- Otherwise, you might need to define null-ls config directly here
-      -- or adapt your configuration structure
+      return require "configs.null-ls"
     end,
   },
 

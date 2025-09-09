@@ -28,7 +28,6 @@ return {
     "willothy/flatten.nvim",
     lazy = false,
     opts = function()
-      ---@type Terminal?
       local saved_terminal
 
       return {

@@ -34,6 +34,7 @@ A modern Neovim configuration built on top of [NvChad](https://nvchad.com/) with
 - **Flatten** - Better handling of nested Neovim instances
 - **Clever-f** - Enhanced f/F motions
 - **Prompt Tower** - Project context generation for AI tools
+- **Tiny Inline Diagnostic** - Beautiful inline diagnostic display with git blame compatibility
 
 ## 🚀 Installation
 
@@ -345,6 +346,19 @@ Multi-formatter support with intelligent formatting:
 - Range formatting for selections
 - LSP fallback support
 - Format-on-save (configurable)
+
+### Tiny Inline Diagnostic
+
+Enhanced diagnostic display with git blame compatibility:
+
+- ✨ **Modern inline diagnostics** - Beautiful diagnostic messages displayed inline next to code
+- 🎨 **Multiple visual presets** - Choose from "modern", "classic", "minimal", "ghost", or "simple" styles
+- 🔍 **Smart positioning** - Diagnostics wrap to avoid conflicts with git blame
+- 📱 **Responsive design** - Messages wrap intelligently based on length and screen space
+- 🎯 **Severity-based styling** - Different colors and icons for errors, warnings, info, and hints
+- ⚡ **Performance optimized** - Throttled updates to prevent lag while typing
+- 🚫 **Insert mode filtering** - Diagnostics hidden while actively typing for distraction-free coding
+- 🔄 **Git blame compatibility** - Transparent background and lower priority ensures both work together
 
 ## 🐛 Troubleshooting
 

@@ -73,81 +73,81 @@ function M.test()
   end
 end
 
--- Format git hunks using LSP range formatting
-function M.format_hunks()
-  local hunks = get_git_hunks()
-
-  if #hunks == 0 then
-    vim.notify("No git hunks found in current buffer", vim.log.levels.INFO)
-    return
-  end
-
-  debug_print("Starting to format " .. #hunks .. " hunks using LSP range formatting")
-
-  -- Check if any LSP client supports range formatting
-  local clients = vim.lsp.get_active_clients { bufnr = 0 }
-  local range_client = nil
-
-  for _, client in ipairs(clients) do
-    if client.server_capabilities.documentRangeFormattingProvider then
-      range_client = client
-      debug_print("Found LSP client with range formatting: " .. client.name)
-      break
-    end
-  end
-
-  if not range_client then
-    debug_print "No LSP client supports range formatting, falling back to simple method"
-    M.format_hunks_simple()
-    return
-  end
-
-  -- Format each hunk using LSP range formatting
-  local formatted_count = 0
-  for i, hunk in ipairs(hunks) do
-    debug_print(string.format("Formatting hunk %d: lines %d-%d", i, hunk.start_line, hunk.end_line))
-
-    local success, err = pcall(function()
-      -- Use vim.lsp.buf.range_formatting
-      local range = {
-        start = {
-          line = hunk.start_line - 1, -- 0-indexed line
-          character = 0,
-        },
-        ["end"] = {
-          line = hunk.end_line - 1, -- 0-indexed line
-          character = 999, -- End of line
-        },
-      }
-
-      debug_print(
-        string.format(
-          "LSP range: start=%d:%d, end=%d:%d",
-          range.start.line,
-          range.start.character,
-          range["end"].line,
-          range["end"].character
-        )
-      )
-
-      -- Call LSP range formatting
-      vim.lsp.buf.format {
-        range = range,
-        async = false,
-      }
-    end)
-
-    if success then
-      formatted_count = formatted_count + 1
-      debug_print("Successfully formatted hunk " .. i)
-    else
-      debug_print("Failed to format hunk " .. i .. ": " .. tostring(err))
-    end
-  end
-
-  vim.notify(string.format("Formatted %d/%d git hunks using LSP", formatted_count, #hunks), vim.log.levels.INFO)
-end
-
+-- -- Format git hunks using LSP range formatting
+-- function M.format_hunks()
+--   local hunks = get_git_hunks()
+--
+--   if #hunks == 0 then
+--     vim.notify("No git hunks found in current buffer", vim.log.levels.INFO)
+--     return
+--   end
+--
+--   debug_print("Starting to format " .. #hunks .. " hunks using LSP range formatting")
+--
+--   -- Check if any LSP client supports range formatting
+--   local clients = vim.lsp.get_active_clients { bufnr = 0 }
+--   local range_client = nil
+--
+--   for _, client in ipairs(clients) do
+--     if client.server_capabilities.documentRangeFormattingProvider then
+--       range_client = client
+--       debug_print("Found LSP client with range formatting: " .. client.name)
+--       break
+--     end
+--   end
+--
+--   if not range_client then
+--     debug_print "No LSP client supports range formatting, falling back to simple method"
+--     M.format_hunks_simple()
+--     return
+--   end
+--
+--   -- Format each hunk using LSP range formatting
+--   local formatted_count = 0
+--   for i, hunk in ipairs(hunks) do
+--     debug_print(string.format("Formatting hunk %d: lines %d-%d", i, hunk.start_line, hunk.end_line))
+--
+--     local success, err = pcall(function()
+--       -- Use vim.lsp.buf.range_formatting
+--       local range = {
+--         start = {
+--           line = hunk.start_line - 1, -- 0-indexed line
+--           character = 0,
+--         },
+--         ["end"] = {
+--           line = hunk.end_line - 1, -- 0-indexed line
+--           character = 999, -- End of line
+--         },
+--       }
+--
+--       debug_print(
+--         string.format(
+--           "LSP range: start=%d:%d, end=%d:%d",
+--           range.start.line,
+--           range.start.character,
+--           range["end"].line,
+--           range["end"].character
+--         )
+--       )
+--
+--       -- Call LSP range formatting
+--       vim.lsp.buf.format {
+--         range = range,
+--         async = false,
+--       }
+--     end)
+--
+--     if success then
+--       formatted_count = formatted_count + 1
+--       debug_print("Successfully formatted hunk " .. i)
+--     else
+--       debug_print("Failed to format hunk " .. i .. ": " .. tostring(err))
+--     end
+--   end
+--
+--   vim.notify(string.format("Formatted %d/%d git hunks using LSP", formatted_count, #hunks), vim.log.levels.INFO)
+-- end
+--
 -- Simple format hunks without range (fallback)
 function M.format_hunks_simple()
   local hunks = get_git_hunks()
