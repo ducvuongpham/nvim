@@ -1,74 +1,73 @@
 local null_ls = require "null-ls"
 
--- Create a simple, working configuration
--- Focus on what actually works reliably
-
 local sources = {}
 
--- Add a custom Prettier diagnostic that checks if code needs formatting
-local prettier_diagnostic = {
-  method = null_ls.methods.DIAGNOSTICS,
-  filetypes = {
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "css",
-    "scss",
-    "less",
-    "html",
-    "json",
-    "jsonc",
-    "yaml",
-    "yml",
-    "markdown",
-    "mdx",
-    "vue",
-    "svelte",
-    "astro",
-  },
-  generator = {
-    fn = function()
-      -- Simple check: if file needs Prettier formatting, show a diagnostic
-      local has_prettier_config = function()
-        local config_files = {
+-- Safely check and add Prettier diagnostics
+local has_prettier_executable = vim.fn.executable "prettier" == 1
+  or vim.fn.filereadable(vim.fn.stdpath "data" .. "/mason/bin/prettier") == 1
+
+-- Check if prettier diagnostic is available in null-ls builtins
+local has_prettier_diagnostic = false
+if null_ls.builtins and null_ls.builtins.diagnostics and null_ls.builtins.diagnostics.prettier then
+  has_prettier_diagnostic = true
+end
+
+if has_prettier_executable and has_prettier_diagnostic then
+  table.insert(
+    sources,
+    null_ls.builtins.diagnostics.prettier.with {
+      prefer_local = "node_modules/.bin",
+      condition = function(utils)
+        return utils.root_has_file {
           ".prettierrc",
           ".prettierrc.json",
           ".prettierrc.yml",
           ".prettierrc.yaml",
           ".prettierrc.js",
           ".prettierrc.cjs",
+          ".prettierrc.mjs",
           "prettier.config.js",
+          "prettier.config.cjs",
+          "prettier.config.mjs",
           "package.json",
         }
-
-        for _, file in ipairs(config_files) do
-          if vim.fn.filereadable(file) == 1 then
-            return true
-          end
-        end
-        return false
-      end
-
-      if not has_prettier_config() then
-        return {}
-      end
-
-      -- Return a simple message about using Prettier
-      return {
-        {
-          row = 1,
-          col = 1,
-          message = "Use <leader>fm to format with Prettier",
-          severity = vim.diagnostic.severity.HINT,
-          source = "prettier-helper",
-        },
+      end,
+      diagnostics_format = "#{m} (prettier)",
+      runtime_condition = function(params)
+        -- Only show diagnostics if the file actually needs formatting
+        return true
+      end,
+    }
+  )
+elseif has_prettier_executable then
+  -- Prettier is available but diagnostic isn't - try alternative approach
+  -- Try to use prettier from none-ls-extras if available
+  local ok, prettier_extra = pcall(require, "none-ls.diagnostics.prettier")
+  if ok then
+    table.insert(
+      sources,
+      prettier_extra.with {
+        prefer_local = "node_modules/.bin",
+        condition = function(utils)
+          return utils.root_has_file {
+            ".prettierrc",
+            ".prettierrc.json",
+            ".prettierrc.yml",
+            ".prettierrc.yaml",
+            ".prettierrc.js",
+            ".prettierrc.cjs",
+            ".prettierrc.mjs",
+            "prettier.config.js",
+            "prettier.config.cjs",
+            "prettier.config.mjs",
+            "package.json",
+          }
+        end,
+        diagnostics_format = "#{m} (prettier)",
       }
-    end,
-  },
-}
-
-table.insert(sources, prettier_diagnostic)
+    )
+  end
+end
 
 -- Try to load ESLint from none-ls-extras (more reliable than builtins)
 local has_eslint_extra, eslint_extra = pcall(require, "none-ls.diagnostics.eslint")
