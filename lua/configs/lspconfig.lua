@@ -1,5 +1,4 @@
 local nvlsp = require "nvchad.configs.lspconfig"
-local lspconfig = require "lspconfig"
 
 nvlsp.defaults() -- loads nvchad's defaults
 
@@ -44,11 +43,12 @@ local servers = {
 
 -- Setup servers with default config
 for _, lsp in ipairs(servers) do
-  lspconfig[lsp].setup {
+  vim.lsp.config(lsp, {
     on_attach = nvlsp.on_attach,
     on_init = nvlsp.on_init,
     capabilities = nvlsp.capabilities,
-  }
+  })
+  vim.lsp.enable(lsp)
 end
 
 -- Node.js-based servers that need mise for compatibility
@@ -88,7 +88,8 @@ for server, cmd_name in pairs(node_servers) do
       { "javascript", "javascriptreact", "javascript.jsx", "typescript", "typescriptreact", "typescript.tsx" }
   end
 
-  lspconfig[server].setup(config)
+  vim.lsp.config(server, config)
+  vim.lsp.enable(server)
 end
 
 -- Setup ESLint LSP for diagnostics
@@ -120,7 +121,7 @@ end
 
 local eslint_cmd = get_eslint_cmd()
 if eslint_cmd then
-  lspconfig.eslint.setup {
+  vim.lsp.config("eslint", {
     on_attach = function(client, bufnr)
       nvlsp.on_attach(client, bufnr)
 
@@ -128,7 +129,10 @@ if eslint_cmd then
       vim.api.nvim_create_autocmd("BufWritePre", {
         buffer = bufnr,
         callback = function()
-          vim.cmd "EslintFixAll"
+          vim.lsp.buf.code_action({
+            context = { only = { "source.fixAll.eslint" } },
+            apply = true,
+          })
         end,
       })
     end,
@@ -146,21 +150,9 @@ if eslint_cmd then
         },
       },
     },
-    root_dir = function(fname)
-      return lspconfig.util.root_pattern(
-        ".eslintrc",
-        ".eslintrc.js",
-        ".eslintrc.cjs",
-        ".eslintrc.yaml",
-        ".eslintrc.yml",
-        ".eslintrc.json",
-        "eslint.config.js",
-        "eslint.config.mjs",
-        "eslint.config.cjs",
-        "package.json"
-      )(fname)
-    end,
-  }
+    root_dir = vim.fs.root,
+  })
+  vim.lsp.enable("eslint")
 end
 
 -- Setup Prettier as a formatting-only "LSP" (efm-langserver approach)
@@ -196,19 +188,7 @@ local efm_config = {
     "svelte",
     "astro",
   },
-  root_dir = function(fname)
-    return lspconfig.util.root_pattern(
-      ".prettierrc",
-      ".prettierrc.json",
-      ".prettierrc.yml",
-      ".prettierrc.yaml",
-      ".prettierrc.js",
-      ".prettierrc.cjs",
-      "prettier.config.js",
-      "prettier.config.cjs",
-      "package.json"
-    )(fname)
-  end,
+  root_dir = vim.fs.root,
   settings = {},
 }
 

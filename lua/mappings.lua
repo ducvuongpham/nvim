@@ -9,6 +9,12 @@ map("i", "jk", "<ESC>")
 
 map({ "n", "i", "v" }, "<C-s>", "<cmd> w <cr>")
 
+-- Save without formatting
+vim.api.nvim_create_user_command('W', function()
+  -- Save the file without triggering any formatting
+  vim.cmd('noautocmd write')
+end, { desc = 'Save without formatting' })
+
 map("n", "gr", "<cmd> lua vim.lsp.buf.references() <cr>", { desc = "LSP go to references" })
 
 -- Telescope mappings
