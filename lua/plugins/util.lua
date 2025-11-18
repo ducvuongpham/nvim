@@ -29,6 +29,7 @@ return {
     lazy = false,
     opts = function()
       local saved_terminal
+      local saved_lazygit = {}
 
       return {
         window = {
@@ -55,14 +56,58 @@ return {
               local termid = term.get_focused_id()
               saved_terminal = term.get(termid)
             end
+            -- Capture any LazyGit windows (filetype 'lazygit') so we can hide them
+            saved_lazygit = {}
+            for _, win in ipairs(vim.api.nvim_list_wins()) do
+              local b = vim.api.nvim_win_get_buf(win)
+              local ft = vim.api.nvim_buf_get_option(b, "filetype")
+              if ft == "lazygit" then
+                table.insert(saved_lazygit, { win = win, buf = b })
+                -- Close the window (will hide LazyGit interface)
+                pcall(vim.api.nvim_win_close, win, true)
+              end
+            end
           end,
           post_open = function(bufnr, winnr, ft, is_blocking)
-            if is_blocking and saved_terminal then
-              -- Hide the terminal while it's blocking
-              saved_terminal:close()
+            -- Support newer flatten versions that may pass a single context table
+            if type(bufnr) == "table" and (bufnr.bufnr or bufnr.buffer or bufnr.win or bufnr.winnr) then
+              local ctx = bufnr
+              bufnr = ctx.bufnr or ctx.buffer or vim.api.nvim_get_current_buf()
+              winnr = ctx.winnr or ctx.win or ctx.window or winnr
+              ft = ctx.ft or ctx.filetype or ft
+              is_blocking = ctx.is_blocking or ctx.blocking or is_blocking
+            end
+            -- Validate bufnr
+            if type(bufnr) ~= "number" then
+              bufnr = vim.api.nvim_get_current_buf()
+            end
+            if is_blocking then
+              if saved_terminal then
+                -- Hide the terminal while it's blocking
+                saved_terminal:close()
+              end
             else
-              -- If it's a normal file, just switch to its window
-              vim.api.nvim_set_current_win(winnr)
+              -- If it's a normal file, attempt to switch to its window safely
+              -- Defensive: flatten sometimes passes a non-numeric winnr; validate before using
+              local target = nil
+              if type(winnr) == "number" and vim.api.nvim_win_is_valid(winnr) then
+                target = winnr
+              else
+                -- Fallback: find a window displaying this buffer
+                local buf_win = -1
+                if type(bufnr) == "number" then
+                  local ok_id, id = pcall(vim.fn.bufwinid, bufnr)
+                  if ok_id then
+                    buf_win = id
+                  end
+                end
+                if buf_win ~= -1 and vim.api.nvim_win_is_valid(buf_win) then
+                  target = buf_win
+                end
+              end
+              if target then
+                pcall(vim.api.nvim_set_current_win, target)
+              end
             end
 
             -- If the file is a git commit, create one-shot autocmd to delete its buffer on write
@@ -71,7 +116,9 @@ return {
                 buffer = bufnr,
                 once = true,
                 callback = vim.schedule_wrap(function()
-                  vim.api.nvim_buf_delete(bufnr, {})
+                  if vim.api.nvim_buf_is_valid(bufnr) then
+                    vim.api.nvim_buf_delete(bufnr, {})
+                  end
                 end),
               })
             end
@@ -82,6 +129,13 @@ return {
               if saved_terminal then
                 saved_terminal:open()
                 saved_terminal = nil
+              end
+              -- Restore LazyGit interface if it was open before
+              if saved_lazygit and #saved_lazygit > 0 then
+                -- Reopen LazyGit (simplest is to call the command)
+                -- Only reopen if user still has a terminal environment (avoid surprise if they closed nvim quickly)
+                pcall(vim.cmd, "LazyGit")
+                saved_lazygit = {}
               end
             end)
           end,
