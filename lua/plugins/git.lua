@@ -13,7 +13,7 @@ return {
       "nvim-lua/plenary.nvim",
     },
     keys = {
-      { "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" }
+      { "<leader>lg", "<cmd>LazyGit<cr>", desc = "LazyGit" },
     },
     config = function()
       -- Configure lazygit.nvim to work with flatten.nvim
@@ -26,18 +26,34 @@ return {
     "f-person/git-blame.nvim",
     lazy = false,
     config = function()
-      vim.cmd('highlight default link gitblame SpecialComment') -- change this to whatever highlight group you want
+      vim.cmd "highlight default link gitblame SpecialComment" -- change this to whatever highlight group you want
       vim.g.gitblame_enabled = 1 -- git blame is off by default
-      vim.g.gitblame_message_template = '             <author> • <date> • <summary>' -- change this to whatever you want
-    end
+      vim.g.gitblame_message_template = "             <author> • <date> • <summary>" -- change this to whatever you want
+    end,
   },
 
-  -- Uncomment if you want to use gitsigns
-  -- {
-  --   "lewis6991/gitsigns.nvim",
-  --   lazy = false,
-  --   config = function()
-  --     require('gitsigns').setup()
-  --   end
-  -- },
+  {
+    "lewis6991/gitsigns.nvim",
+    lazy = false,
+    config = function()
+      require("gitsigns").setup {
+        on_attach = function(bufnr)
+          local gs = package.loaded.gitsigns
+
+          -- Keymaps
+          local function map(mode, l, r, opts)
+            opts = opts or {}
+            opts.buffer = bufnr
+            vim.keymap.set(mode, l, r, opts)
+          end
+
+          -- Reset hunk
+          map("n", "<leader>hr", gs.reset_hunk, { desc = "Reset hunk" })
+          map("v", "<leader>hr", function()
+            gs.reset_hunk { vim.fn.line ".", vim.fn.line "v" }
+          end, { desc = "Reset hunk" })
+        end,
+      }
+    end,
+  },
 }
