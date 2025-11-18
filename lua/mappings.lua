@@ -24,9 +24,9 @@ map("n", "<leader>fr", "<cmd> Telescope resume <CR>", { desc = "telescope resume
 map("n", "<leader>fs", function()
   require("auto-session.session-lens").search_session()
 end, { noremap = true, desc = "search session" })
-map("n", "<leader>ws", "<cmd>SessionSave<CR>", { desc = "save session" })
-map("n", "<leader>wr", "<cmd>SessionRestore<CR>", { desc = "restore session" })
-map("n", "<leader>wd", "<cmd>SessionDelete<CR>", { desc = "delete session" })
+map("n", "<leader>ws", "<cmd>AutoSession save<CR>", { desc = "save session" })
+map("n", "<leader>wr", "<cmd>AutoSession restore<CR>", { desc = "restore session" })
+map("n", "<leader>wd", "<cmd>AutoSession delete<CR>", { desc = "delete session" })
 
 -- Copilot mappings
 map("i", "<C-V>", "<Plug>(copilot-accept-word)", { desc = "copilot accept word" })
