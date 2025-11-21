@@ -93,10 +93,17 @@ for server, cmd_name in pairs(node_servers) do
 end
 
 -- Setup ESLint LSP for diagnostics
--- ESLint language server is bundled with vscode-langservers-extracted packages
 local function get_eslint_cmd()
+  -- Try to use Mason's ESLint language server first
+  local mason_eslint = vim.fn.stdpath "data" .. "/mason/bin/vscode-eslint-language-server"
+  if vim.fn.filereadable(mason_eslint) == 1 then
+    return { "mise", "x", "node@latest", "--", mason_eslint, "--stdio" }
+  end
+
   -- Try different possible locations for the ESLint language server
   local possible_paths = {
+    vim.fn.stdpath "data"
+      .. "/mason/packages/eslint-lsp/node_modules/vscode-langservers-extracted/bin/vscode-eslint-language-server",
     vim.fn.stdpath "data"
       .. "/mason/packages/html-lsp/node_modules/vscode-langservers-extracted/bin/vscode-eslint-language-server",
     vim.fn.stdpath "data"
@@ -114,6 +121,11 @@ local function get_eslint_cmd()
   -- Fallback to system eslint_d if available
   if vim.fn.executable "eslint_d" == 1 then
     return { "eslint_d", "--stdin", "--stdin-filename", "$FILENAME", "--format", "json" }
+  end
+
+  -- Try to use npx eslint as last resort
+  if vim.fn.executable "npx" == 1 then
+    return { "mise", "x", "node@latest", "--", "npx", "eslint", "--stdin", "--stdin-filename", "$FILENAME", "--format", "json", "--fix-dry-run" }
   end
 
   return nil
@@ -139,20 +151,47 @@ if eslint_cmd then
     on_init = nvlsp.on_init,
     capabilities = nvlsp.capabilities,
     cmd = eslint_cmd,
-    filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte" },
+    filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
     settings = {
       eslint = {
         enable = true,
-        autoFixOnSave = true,
-        codeActionsOnSave = {
-          mode = "all",
-          rules = { "!debugger", "!no-only-tests/*" },
+        format = { enable = true },
+        lint = { enable = true },
+        workingDirectories = { mode = "location" },
+        codeAction = {
+          disableRuleComment = {
+            enable = true,
+            location = "separateLine"
+          },
+          showDocumentation = {
+            enable = true
+          }
         },
+        validate = "on",
+        run = "onType",
+        autoFixOnSave = true,
       },
     },
-    root_dir = vim.fs.root,
+    root_dir = function(fname)
+      -- Look for ESLint config files
+      return vim.fs.root(fname, {
+        ".eslintrc",
+        ".eslintrc.js",
+        ".eslintrc.json",
+        ".eslintrc.yml",
+        ".eslintrc.yaml",
+        ".eslintrc.ts.js",
+        "eslint.config.js",
+        "eslint.config.mjs",
+        "eslint.config.cjs",
+        "eslint.config.ts",
+        "package.json"
+      })
+    end,
   })
   vim.lsp.enable("eslint")
+else
+  vim.notify("ESLint language server not found. Install via Mason or npm install -g eslint", vim.log.levels.WARN)
 end
 
 -- Setup Prettier as a formatting-only "LSP" (efm-langserver approach)
