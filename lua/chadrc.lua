@@ -8,10 +8,12 @@ local M = {}
 M.base46 = {
   theme = "catppuccin",
 
-  -- hl_override = {
-  -- 	Comment = { italic = true },
-  -- 	["@comment"] = { italic = true },
-  -- },
+  hl_override = {
+    Comment = { italic = true },
+    ["@comment"] = { italic = true },
+    Visual = { bg = "#45475a" },
+    TelescopeSelection = { bg = "#45475a" },
+  },
 }
 
 M.nvdash = { load_on_startup = true }
