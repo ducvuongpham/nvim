@@ -25,6 +25,7 @@ local plugin_modules = {
   "coding", -- Code related plugins (completion, formatting)
   "git", -- Git related plugins
   "util", -- Utility plugins (sessions, etc.)
+  "mini", -- Mini.nvim modules (text objects, surround, etc.)
 }
 
 -- Combine all plugins into a flat list
