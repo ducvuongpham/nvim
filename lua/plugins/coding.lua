@@ -13,6 +13,7 @@ return {
   {
     "olimorris/codecompanion.nvim", -- The KING of AI programming
     lazy = false,
+    version = "v17.*",
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-treesitter/nvim-treesitter",
