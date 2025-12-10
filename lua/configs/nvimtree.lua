@@ -9,7 +9,22 @@ local function my_on_attach(bufnr)
     if node ~= nil then
       api.node.open.edit()
     end
-  end, {})
+  end, { buffer = bufnr })
+
+  -- Open folder/file in system file manager (Finder on macOS)
+  vim.keymap.set("n", "o", function()
+    local node = api.tree.get_node_under_cursor()
+    if node then
+      local path = node.absolute_path
+      if node.type == "directory" then
+        -- Open folder in Finder
+        vim.fn.system('open "' .. path .. '"')
+      else
+        -- Open file with default application
+        vim.fn.system('open "' .. path .. '"')
+      end
+    end
+  end, { buffer = bufnr, desc = "Open in system file manager" })
 end
 
 -- Get default options from NvChad

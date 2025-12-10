@@ -1,5 +1,31 @@
 -- Editor enhancement plugins
 return {
+  -- Snacks.nvim - Collection of useful utilities
+  {
+    "folke/snacks.nvim",
+    priority = 1000,
+    lazy = false,
+    opts = {
+      bigfile = {
+        enabled = true,
+        notify = true, -- Show notification when big file detected
+        size = 1.5 * 1024 * 1024, -- 1.5MB
+        line_length = 1000, -- Average line length (for minified files)
+        -- Disable features for big files
+        setup = function(ctx)
+          vim.cmd "NoMatchParen"
+          vim.wo.foldmethod = "manual"
+          vim.wo.statuscolumn = ""
+          vim.wo.conceallevel = 0
+          vim.b.minianimate_disable = true
+          vim.schedule(function()
+            vim.bo[ctx.buf].syntax = ctx.ft
+          end)
+        end,
+      },
+    },
+  },
+
   {
     "nvim-telescope/telescope-fzf-native.nvim",
     build = "make",

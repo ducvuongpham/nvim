@@ -15,10 +15,15 @@ vim.api.nvim_create_user_command('W', function()
   vim.cmd('noautocmd write')
 end, { desc = 'Save without formatting' })
 
-map("n", "gr", "<cmd> lua vim.lsp.buf.references() <cr>", { desc = "LSP go to references" })
+-- LSP references
+map("n", "gr", vim.lsp.buf.references, { desc = "LSP go to references" })
 
--- Telescope mappings
-map("n", "<leader>fr", "<cmd> Telescope resume <CR>", { desc = "telescope resume last search" })
+-- Disable Neovim default gr* mappings
+vim.keymap.del("n", "grr")
+vim.keymap.del("n", "gri")
+vim.keymap.del("n", "gra")
+vim.keymap.del("n", "grn")
+vim.keymap.del("n", "grt")
 
 -- Auto-session mappings
 map("n", "<leader>fs", function()
@@ -110,3 +115,14 @@ map({ "n", "x" }, "C", '"_C', { noremap = true, desc = "Change to end of line wi
 map("n", "cc", '"_cc', { noremap = true, desc = "Change line without yank" })
 map("n", "s", '"_s', { noremap = true, desc = "Substitute without yank" })
 map("n", "S", '"_S', { noremap = true, desc = "Substitute line without yank" })
+
+-- Diagnostics floating window (like VSCode)
+map("n", "dx", function()
+  vim.diagnostic.open_float(nil, {
+    focusable = true,
+    border = "rounded",
+    source = true,
+    prefix = "",
+    scope = "line",
+  })
+end, { desc = "Show diagnostic at cursor" })

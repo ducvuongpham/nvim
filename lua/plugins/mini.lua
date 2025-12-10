@@ -10,7 +10,6 @@ return {
       -- ============================================
       -- TEXT EDITING MODULES
       -- ============================================
-
       -- mini.ai - Enhanced text objects (around/inside)
       -- Examples: vai (select around indent), viq (select inside quote), vat (around tag)
       require("mini.ai").setup {
@@ -24,24 +23,24 @@ return {
       -- saiw t - add html tag around word
       require("mini.surround").setup()
 
-      -- mini.pairs - Auto-pairs for brackets/quotes
-      -- Automatically inserts closing pair
-      require("mini.pairs").setup {
-        modes = { insert = true, command = false, terminal = false },
-      }
+      -- -- mini.pairs - Auto-pairs for brackets/quotes
+      -- -- Automatically inserts closing pair
+      -- require("mini.pairs").setup {
+      --   modes = { insert = true, command = false, terminal = false },
+      -- }
 
-      -- mini.comment - Better commenting
-      -- gc{motion} - toggle comment, gcc - comment line
-      require("mini.comment").setup()
+      -- -- mini.comment - Better commenting
+      -- -- gc{motion} - toggle comment, gcc - comment line
+      -- require("mini.comment").setup()
 
       -- ============================================
       -- NAVIGATION MODULES
       -- ============================================
 
-      -- mini.bracketed - Navigate using [ and ] brackets
-      -- [b/]b - buffer, [c/]c - comment, [d/]d - diagnostic
-      -- [f/]f - file, [q/]q - quickfix, [t/]t - treesitter
-      require("mini.bracketed").setup()
+      -- -- mini.bracketed - Navigate using [ and ] brackets
+      -- -- [b/]b - buffer, [c/]c - comment, [d/]d - diagnostic
+      -- -- [f/]f - file, [q/]q - quickfix, [t/]t - treesitter
+      -- require("mini.bracketed").setup()
 
       -- mini.jump - Extended f, F, t, T motions
       -- Highlights possible targets and allows repeat with f/F/t/T
@@ -101,12 +100,16 @@ return {
       -- gS to toggle between single-line and multi-line
       require("mini.splitjoin").setup()
 
-      -- mini.move - Move lines/selections with Alt+hjkl
-      require("mini.move").setup()
+      -- -- mini.move - Move lines/selections with Alt+hjkl
+      -- require("mini.move").setup()
 
       -- mini.operators - Text operators (evaluate, exchange, multiply, replace, sort)
-      -- g= evaluate, gx exchange, gm multiply, gr replace, gs sort
-      require("mini.operators").setup()
+      -- g= evaluate, gx exchange, gm multiply, gR replace, gs sort
+      require("mini.operators").setup {
+        replace = {
+          prefix = "gR", -- Changed from 'gr' to preserve LSP go to references
+        },
+      }
     end,
   },
 
@@ -123,8 +126,8 @@ return {
     "andymass/vim-matchup",
     event = "BufReadPost",
     init = function()
-      -- Don't highlight matching pairs (optional, remove if you want highlights)
-      -- vim.g.matchup_matchparen_offscreen = { method = "popup" }
+      -- Disable the offscreen popup that covers statusline
+      vim.g.matchup_matchparen_offscreen = {}
     end,
     config = function()
       -- Enable treesitter integration for better matching
