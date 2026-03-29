@@ -53,10 +53,15 @@ return {
     indent_markers = { enable = true },
     icons = {
       glyphs = {
+        default = "󰈚",
         folder = {
-          arrow_open = "",
-          arrow_closed = "",
+          default    = "",
+          empty      = "",
+          empty_open = "",
+          open       = "",
+          symlink    = "",
         },
+        git = { unmerged = "" },
       },
     },
   },

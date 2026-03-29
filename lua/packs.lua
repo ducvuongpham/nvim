@@ -25,12 +25,12 @@ vim.pack.add({
   { src = "https://github.com/utilyre/barbecue.nvim" },
 
   -- Editor
+  { src = "https://github.com/folke/which-key.nvim" },
   { src = "https://github.com/folke/snacks.nvim" },
   { src = "https://github.com/stevearc/dressing.nvim" },
   { src = "https://github.com/folke/zen-mode.nvim" },
   { src = "https://github.com/chrisgrieser/nvim-early-retirement" },
   { src = "https://github.com/folke/trouble.nvim" },
-  { src = "https://github.com/rachartier/tiny-inline-diagnostic.nvim" },
   { src = "https://github.com/kylesnowschwartz/prompt-tower.nvim" },
   { src = "https://github.com/stevearc/conform.nvim" },
 

@@ -20,6 +20,10 @@ local saved_lazygit = {}
 
 require("flatten").setup {
   window = { open = "smart" },
+  pipe_path = function()
+    -- Fixed socket path so ALL terminal sessions share one Neovim instance
+    return vim.fn.expand "~/.cache/nvim/flatten.pipe"
+  end,
     hooks = {
       should_block = function(argv)
         return vim.tbl_contains(argv, "-b")

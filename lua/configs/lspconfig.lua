@@ -1,92 +1,82 @@
--- LSP setup using Neovim's built-in vim.lsp.config / vim.lsp.enable
--- No nvim-lspconfig wrapper needed — nvim-lspconfig is still used as a
--- server-definition library (provides default cmd, filetypes, root_dir).
+-- LSP setup for Neovim 0.12
+-- Follows NvChad v2.5 pattern: LspAttach for keymaps, vim.lsp.config("*") for globals,
+-- nvim-lspconfig lsp/<name>.lua provides cmd/filetypes/root_dir automatically.
 
-local M = {}
+local map = vim.keymap.set
 
--- Capabilities: merge base + nvim-cmp completion items
-M.capabilities = vim.tbl_deep_extend(
+-- ── Keymaps via LspAttach (cleaner than per-server on_attach) ─────────────────
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local bufnr = args.buf
+    local function opts(desc)
+      return { buffer = bufnr, silent = true, desc = desc }
+    end
+
+    map("n", "gd",         vim.lsp.buf.definition,     opts "Go to definition")
+    map("n", "gD",         vim.lsp.buf.declaration,    opts "Go to declaration")
+    map("n", "gi",         vim.lsp.buf.implementation, opts "Go to implementation")
+    map("n", "gr",         vim.lsp.buf.references,     opts "Go to references")
+    map("n", "K",          vim.lsp.buf.hover,           opts "Hover docs")
+    map("n", "<leader>sh", vim.lsp.buf.signature_help, opts "Signature help")
+    map("n", "<leader>D",  vim.lsp.buf.type_definition, opts "Type definition")
+    map("n", "<leader>ra", vim.lsp.buf.rename,          opts "Rename symbol")
+    map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
+
+    -- Remove Neovim 0.11 default gr* mappings that conflict
+    pcall(vim.keymap.del, "n", "grr", { buffer = bufnr })
+    pcall(vim.keymap.del, "n", "gri", { buffer = bufnr })
+    pcall(vim.keymap.del, "n", "gra", { buffer = bufnr })
+    pcall(vim.keymap.del, "n", "grn", { buffer = bufnr })
+    pcall(vim.keymap.del, "n", "grt", { buffer = bufnr })
+  end,
+})
+
+-- ── Global config (applied to every server) ───────────────────────────────────
+
+local capabilities = vim.tbl_deep_extend(
   "force",
   vim.lsp.protocol.make_client_capabilities(),
   require("cmp_nvim_lsp").default_capabilities()
 )
 
--- Disable semantic tokens (reduces noise, keeps highlighting via treesitter)
-M.on_init = function(client, _)
-  if client:supports_method "textDocument/semanticTokens" then
-    client.server_capabilities.semanticTokensProvider = nil
-  end
-end
+vim.lsp.config("*", {
+  capabilities = capabilities,
+  -- Disable semantic tokens — treesitter handles highlighting
+  on_init = function(client, _)
+    if client:supports_method "textDocument/semanticTokens" then
+      client.server_capabilities.semanticTokensProvider = nil
+    end
+  end,
+})
 
--- Buffer-local LSP keymaps
-M.on_attach = function(client, bufnr)
-  local map = function(mode, lhs, rhs, opts)
-    opts = vim.tbl_extend("force", { buffer = bufnr, silent = true }, opts or {})
-    vim.keymap.set(mode, lhs, rhs, opts)
-  end
+-- ── Enable servers (nvim-lspconfig lsp/*.lua provides cmd/filetypes/root_dir) ─
 
-  map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-  map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
-  map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
-  map("n", "K", vim.lsp.buf.hover, { desc = "Hover docs" })
-  map("n", "<leader>sh", vim.lsp.buf.signature_help, { desc = "Signature help" })
-  map("n", "<leader>D", vim.lsp.buf.type_definition, { desc = "Type definition" })
-  map("n", "<leader>ra", vim.lsp.buf.rename, { desc = "Rename symbol" })
-  map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
-  map("n", "gr", vim.lsp.buf.references, { desc = "Go to references" })
-
-  -- Remove Neovim 0.11 default gr* mappings that conflict with our mappings
-  pcall(vim.keymap.del, "n", "grr", { buffer = bufnr })
-  pcall(vim.keymap.del, "n", "gri", { buffer = bufnr })
-  pcall(vim.keymap.del, "n", "gra", { buffer = bufnr })
-  pcall(vim.keymap.del, "n", "grn", { buffer = bufnr })
-  pcall(vim.keymap.del, "n", "grt", { buffer = bufnr })
-end
-
--- ── Standard servers ──────────────────────────────────────────────────────────
-
-local servers = {
-  "gopls", "pyright", "sqls", "java_language_server",
-  "ansiblels", "dockerls", "docker_compose_language_service", "terraformls",
-  "nginx_language_server", "nixd", "lua_ls", "bashls",
-  "cmake", "clangd", "rust_analyzer",
+vim.lsp.enable {
+  "gopls", "pyright", "lua_ls", "bashls",
+  "clangd", "rust_analyzer",
+  "dockerls", "terraformls", "yamlls", "marksman",
+  "ts_ls", "cssls", "jsonls", "html", "eslint",
 }
 
-for _, lsp in ipairs(servers) do
-  local config = {
-    on_attach = M.on_attach,
-    on_init = M.on_init,
-    capabilities = M.capabilities,
-  }
+-- ── Per-server overrides (only what differs from nvim-lspconfig defaults) ──────
 
-  if lsp == "lua_ls" then
-    config.settings = {
-      Lua = {
-        runtime = { version = "LuaJIT" },
-        diagnostics = { globals = { "vim", "Snacks" } },
-        workspace = {
-          library = { vim.env.VIMRUNTIME, "${3rd}/luv/library" },
-          checkThirdParty = false,
-        },
-        telemetry = { enable = false },
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      runtime = { version = "LuaJIT" },
+      diagnostics = { globals = { "vim", "Snacks" } },
+      workspace = {
+        library = { vim.env.VIMRUNTIME, "${3rd}/luv/library" },
+        checkThirdParty = false,
       },
-    }
-  end
+      telemetry = { enable = false },
+    },
+  },
+})
 
-  vim.lsp.config(lsp, config)
-  vim.lsp.enable(lsp)
-end
-
--- ── Node.js-based servers ─────────────────────────────────────────────────────
--- Mason bins are #!/usr/bin/env node scripts. The system node may be too old
--- (lacks ??= etc.), so we resolve node explicitly via mise.
-
-local mason_bin = vim.fn.stdpath "data" .. "/mason/bin/"
-
--- Resolve the node binary for LSP servers.
--- We MUST NOT use `mise which node` — it respects per-project node versions,
--- so opening a project with an old node would break the LSP servers.
--- Instead, find the newest installed node in mise installs directly.
+-- Node servers: override cmd to use a fixed, modern node (not the per-project one).
+-- mason bin scripts use #!/usr/bin/env node and may pick up an old system node.
 local function find_lsp_node()
   local installs = vim.fn.expand "~/.local/share/mise/installs/node/"
   if vim.fn.isdirectory(installs) ~= 1 then return "node" end
@@ -102,103 +92,52 @@ local function find_lsp_node()
   end
   return best_path or "node"
 end
-local node_bin = find_lsp_node()
+
+local node_bin  = find_lsp_node()
+local mason_bin = vim.fn.stdpath "data" .. "/mason/bin/"
 
 local function node_cmd(script)
   return { node_bin, mason_bin .. script, "--stdio" }
 end
 
-local node_server_on_attach = function(client, bufnr)
-  M.on_attach(client, bufnr)
-  -- Let Prettier/conform handle formatting for these
-  client.server_capabilities.documentFormattingProvider = false
+-- Disable formatting for node servers — Prettier/conform handles it
+local function no_format(client)
+  client.server_capabilities.documentFormattingProvider      = false
   client.server_capabilities.documentRangeFormattingProvider = false
 end
 
-vim.lsp.config("ts_ls", {
-  on_attach = node_server_on_attach,
-  on_init = M.on_init,
-  capabilities = M.capabilities,
-  cmd = node_cmd "typescript-language-server",
-  init_options = { preferences = { allowJs = true, checkJs = true } },
-  filetypes = {
-    "javascript", "javascriptreact", "javascript.jsx",
-    "typescript", "typescriptreact", "typescript.tsx",
-  },
-})
-vim.lsp.enable "ts_ls"
-
-vim.lsp.config("cssls", {
-  on_attach = node_server_on_attach,
-  on_init = M.on_init,
-  capabilities = M.capabilities,
-  cmd = node_cmd "vscode-css-language-server",
-})
-vim.lsp.enable "cssls"
-
-vim.lsp.config("jsonls", {
-  on_attach = node_server_on_attach,
-  on_init = M.on_init,
-  capabilities = M.capabilities,
-  cmd = node_cmd "vscode-json-language-server",
-})
-vim.lsp.enable "jsonls"
-
-vim.lsp.config("html", {
-  on_attach = node_server_on_attach,
-  on_init = M.on_init,
-  capabilities = M.capabilities,
-  cmd = node_cmd "vscode-html-language-server",
-})
-vim.lsp.enable "html"
-
--- ── ESLint LSP ────────────────────────────────────────────────────────────────
-
-if vim.fn.filereadable(mason_bin .. "vscode-eslint-language-server") == 1 then
-  vim.lsp.config("eslint", {
-    cmd = node_cmd "vscode-eslint-language-server",
-    on_attach = function(client, bufnr)
-      M.on_attach(client, bufnr)
-      -- Auto-fix on save
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if not client then return end
+    if vim.tbl_contains({ "ts_ls", "cssls", "jsonls", "html" }, client.name) then
+      no_format(client)
+    end
+    if client.name == "eslint" then
       vim.api.nvim_create_autocmd("BufWritePre", {
-        buffer = bufnr,
+        buffer = args.buf,
         callback = function()
-          vim.lsp.buf.code_action {
-            context = { only = { "source.fixAll.eslint" } },
-            apply = true,
-          }
+          vim.lsp.buf.code_action { context = { only = { "source.fixAll.eslint" } }, apply = true }
         end,
       })
-    end,
-    on_init = M.on_init,
-    capabilities = M.capabilities,
-    filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
-    settings = {
-      eslint = {
-        enable = true,
-        format = { enable = true },
-        workingDirectories = { mode = "location" },
-        validate = "on",
-        run = "onType",
-        autoFixOnSave = true,
-      },
-    },
-    root_dir = function(fname)
-      return vim.fs.root(fname, {
-        ".eslintrc", ".eslintrc.js", ".eslintrc.json", ".eslintrc.yml", ".eslintrc.yaml",
-        "eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "package.json",
-      })
-    end,
-  })
-  vim.lsp.enable "eslint"
-else
-  vim.notify("ESLint LSP not found — install via Mason (eslint-lsp)", vim.log.levels.WARN)
-end
+    end
+  end,
+})
+
+vim.lsp.config("ts_ls", {
+  cmd = node_cmd "typescript-language-server",
+  init_options = { preferences = { allowJs = true, checkJs = true } },
+})
+vim.lsp.config("cssls",  { cmd = node_cmd "vscode-css-language-server" })
+vim.lsp.config("jsonls", { cmd = node_cmd "vscode-json-language-server" })
+vim.lsp.config("html",   { cmd = node_cmd "vscode-html-language-server" })
+vim.lsp.config("eslint", { cmd = node_cmd "vscode-eslint-language-server" })
 
 -- ── Diagnostics display ───────────────────────────────────────────────────────
 
 vim.diagnostic.config {
-  virtual_text = false, -- tiny-inline-diagnostic.nvim handles inline display
+  virtual_text = false,
+  virtual_lines = { current_line = true }, -- show below current line (Neovim 0.12 built-in)
   signs = true,
   underline = true,
   update_in_insert = false,
@@ -212,5 +151,3 @@ vim.diagnostic.config {
     prefix = "",
   },
 }
-
-return M

@@ -24,3 +24,6 @@ require("lualine").setup {
 
 -- ── Breadcrumbs ───────────────────────────────────────────────────────────────
 require("barbecue").setup {}
+
+-- ── Which-key ─────────────────────────────────────────────────────────────────
+require("which-key").setup {}

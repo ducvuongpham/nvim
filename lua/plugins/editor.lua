@@ -71,8 +71,6 @@ vim.api.nvim_create_autocmd("FileType", {
 })
 
 -- ── Telescope ────────────────────────────────────────────────────────────────
--- Keybindings use require("telescope.builtin") directly, so no :Telescope
--- command registration needed. We just configure the defaults here.
 local telescope = require "telescope"
 local actions   = require "telescope.actions"
 
@@ -83,13 +81,13 @@ end
 
 telescope.setup {
   defaults = {
-    prompt_prefix = "   ",
+    prompt_prefix   = "   ",
     selection_caret = " ",
-    entry_prefix = " ",
+    entry_prefix    = " ",
     sorting_strategy = "ascending",
     layout_config = {
       horizontal = { prompt_position = "top", preview_width = 0.55 },
-      width = 0.87, height = 0.80, preview_cutoff = 120,
+      width = 0.87, height = 0.80,
     },
     mappings = {
       i = {
@@ -107,7 +105,7 @@ telescope.setup {
       },
     },
     history = {
-      path = history_dir .. "/telescope_history.sqlite3",
+      path  = history_dir .. "/telescope_history.sqlite3",
       limit = 500,
     },
   },

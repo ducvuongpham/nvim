@@ -7,7 +7,7 @@ vim.g.lazygit_floating_window_border_chars = { "", "", "", "", "", "", "", "" }
 -- ── Inline blame ─────────────────────────────────────────────────────────────
 vim.cmd "highlight default link gitblame SpecialComment"
 vim.g.gitblame_enabled = 1
-vim.g.gitblame_message_template = "             <author> • <date> • <summary>"
+vim.g.gitblame_message_template = "      <author> • <date> • <summary>"
 
 -- ── Blame with stack navigation ───────────────────────────────────────────────
 require("blame").setup {
@@ -18,6 +18,10 @@ require("blame").setup {
 
 -- ── Gitsigns ─────────────────────────────────────────────────────────────────
 require("gitsigns").setup {
+  signs = {
+    delete      = { text = "󰍵" },
+    changedelete = { text = "󱕖" },
+  },
   on_attach = function(bufnr)
     local gs = package.loaded.gitsigns
 

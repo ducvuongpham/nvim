@@ -1,6 +1,9 @@
 -- LSP stack: lazy-loaded on first real buffer open.
 -- All LSP plugins are on the rtp (added by packs.lua) — we just defer setup.
 
+-- Fidget: LSP progress notifications — must be set up before any LSP attaches
+require("fidget").setup {}
+
 vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
   once = true,
   callback = function()
@@ -42,7 +45,5 @@ vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
     dap.listeners.before.event_terminated["dapui_config"]  = function() dapui.close() end
     dap.listeners.before.event_exited["dapui_config"]      = function() dapui.close() end
 
-    -- Inline diagnostics (replaces virtual_text)
-    require("tiny-inline-diagnostic").setup()
   end,
 })

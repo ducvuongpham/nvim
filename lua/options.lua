@@ -1,4 +1,6 @@
 local o = vim.o
+local opt = vim.opt
+local g = vim.g
 
 -- Editor
 o.laststatus = 3
@@ -6,6 +8,7 @@ o.showmode = false
 o.clipboard = "unnamedplus"
 o.cursorline = true
 o.cursorlineopt = "number"
+o.splitkeep = "screen"
 
 -- Indenting
 o.expandtab = true
@@ -16,7 +19,7 @@ o.softtabstop = 2
 
 -- UI
 o.termguicolors = true
-o.fillchars = "eob: "
+opt.fillchars = { eob = " " }
 o.ignorecase = true
 o.smartcase = true
 o.mouse = "a"
@@ -32,12 +35,26 @@ o.splitbelow = true
 o.splitright = true
 
 -- Misc
-o.shortmess = o.shortmess .. "sI"
+opt.shortmess:append "sI"
 o.signcolumn = "yes"
 o.timeoutlen = 400
 o.undofile = true
 o.updatetime = 250
 o.scrolloff = 8
+
+-- Allow h/l and arrow keys to wrap across lines
+opt.whichwrap:append "<>[]hl"
+
+-- Disable unused providers (speeds up startup)
+g.loaded_node_provider   = 0
+g.loaded_python3_provider = 0
+g.loaded_perl_provider   = 0
+g.loaded_ruby_provider   = 0
+
+-- Add mason/bin to PATH so LSP server executables are found
+local sep   = vim.fn.has "win32" ~= 0 and "\\" or "/"
+local delim = vim.fn.has "win32" ~= 0 and ";" or ":"
+vim.env.PATH = table.concat({ vim.fn.stdpath "data", "mason", "bin" }, sep) .. delim .. vim.env.PATH
 
 -- Session options (required by auto-session for correct filetype/highlight restore)
 o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
