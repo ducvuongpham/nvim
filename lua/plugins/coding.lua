@@ -1,14 +1,19 @@
--- ── Copilot ───────────────────────────────────────────────────────────────────
-require("copilot").setup {
-  suggestion = {
-    enabled      = true,
-    auto_trigger = true,
-    keymap       = { accept = false },  -- Tab handled in cmp mapping below
-  },
-  panel = { enabled = false },
-  copilot_node_command = vim.fn.expand "~/.local/share/mise/installs/node/latest/bin/node",
-  workspace_folders    = { vim.fn.expand "~/Program/aircloset/" },
-}
+-- ── Copilot (lazy: first BufReadPost — must fire before InsertEnter) ──────────
+vim.api.nvim_create_autocmd("BufReadPost", {
+  once = true,
+  callback = function()
+    require("copilot").setup {
+      suggestion = {
+        enabled = true,
+        auto_trigger = true,
+        keymap = { accept = false }, -- Tab handled in cmp mapping
+      },
+      panel = { enabled = false },
+      copilot_node_command = vim.fn.expand "~/.local/share/mise/installs/node/latest/bin/node",
+      workspace_folders = { vim.fn.expand "~/Program/aircloset/" },
+    }
+  end,
+})
 
 -- ── Completion (lazy: load on InsertEnter) ────────────────────────────────────
 vim.api.nvim_create_autocmd("InsertEnter", {

@@ -14,14 +14,16 @@ vim.api.nvim_create_autocmd("LspAttach", {
       return { buffer = bufnr, silent = true, desc = desc }
     end
 
-    map("n", "gd",         vim.lsp.buf.definition,     opts "Go to definition")
-    map("n", "gD",         vim.lsp.buf.declaration,    opts "Go to declaration")
-    map("n", "gi",         vim.lsp.buf.implementation, opts "Go to implementation")
-    map("n", "gr",         vim.lsp.buf.references,     opts "Go to references")
-    map("n", "K",          vim.lsp.buf.hover,           opts "Hover docs")
+    map("n", "gd", vim.lsp.buf.definition, opts "Go to definition")
+    map("n", "gD", vim.lsp.buf.declaration, opts "Go to declaration")
+    map("n", "gi", vim.lsp.buf.implementation, opts "Go to implementation")
+    map("n", "gr", vim.lsp.buf.references, opts "Go to references")
+    map("n", "K", vim.lsp.buf.hover, opts "Hover docs")
     map("n", "<leader>sh", vim.lsp.buf.signature_help, opts "Signature help")
-    map("n", "<leader>D",  vim.lsp.buf.type_definition, opts "Type definition")
-    map("n", "<leader>ra", function() require("nvchad.lsp.renamer")() end, opts "Rename symbol")
+    map("n", "<leader>D", vim.lsp.buf.type_definition, opts "Type definition")
+    map("n", "<leader>ra", function()
+      require "nvchad.lsp.renamer"()
+    end, opts "Rename symbol")
     map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
 
     -- NvChad LSP signature (auto-shows signature help on trigger chars)
@@ -65,10 +67,21 @@ vim.lsp.config("*", {
 -- ── Enable servers (nvim-lspconfig lsp/*.lua provides cmd/filetypes/root_dir) ─
 
 vim.lsp.enable {
-  "gopls", "pyright", "lua_ls", "bashls",
-  "clangd", "rust_analyzer",
-  "dockerls", "terraformls", "yamlls", "marksman",
-  "ts_ls", "cssls", "jsonls", "html", "eslint",
+  "gopls",
+  "pyright",
+  "lua_ls",
+  "bashls",
+  "clangd",
+  "rust_analyzer",
+  "dockerls",
+  "terraformls",
+  "yamlls",
+  "marksman",
+  "ts_ls",
+  "cssls",
+  "jsonls",
+  "html",
+  "eslint",
 }
 
 -- ── Per-server overrides (only what differs from nvim-lspconfig defaults) ──────
@@ -92,14 +105,18 @@ vim.lsp.config("lua_ls", {
 local function find_lsp_node()
   -- Prefer mise's `latest` symlink — always points to the newest installed version
   local latest = vim.fn.expand "~/.local/share/mise/installs/node/latest/bin/node"
-  if vim.fn.executable(latest) == 1 then return latest end
+  if vim.fn.executable(latest) == 1 then
+    return latest
+  end
   -- Fallback: ask mise directly
   local r = vim.system({ "mise", "x", "node@latest", "--", "node", "--print-exe-path" }):wait()
-  if r and r.code == 0 then return vim.trim(r.stdout) end
+  if r and r.code == 0 then
+    return vim.trim(r.stdout)
+  end
   return "node"
 end
 
-local node_bin  = find_lsp_node()
+local node_bin = find_lsp_node()
 local mason_bin = vim.fn.stdpath "data" .. "/mason/bin/"
 local mason_pkg = vim.fn.stdpath "data" .. "/mason/packages/"
 
@@ -113,22 +130,33 @@ local function find_bun()
     vim.fn.expand "~/.bun/bin/bun",
     "bun",
   } do
-    if vim.fn.executable(c) == 1 then return c end
+    if vim.fn.executable(c) == 1 then
+      return c
+    end
   end
 end
 
 local bun_bin = find_bun()
 
+local function bun_cmd(script)
+  if bun_bin then
+    return { bun_bin, mason_bin .. script, "--stdio" }
+  end
+  return node_cmd(script)
+end
+
 -- Disable formatting for node servers — Prettier/conform handles it
 local function no_format(client)
-  client.server_capabilities.documentFormattingProvider      = false
+  client.server_capabilities.documentFormattingProvider = false
   client.server_capabilities.documentRangeFormattingProvider = false
 end
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if not client then return end
+    if not client then
+      return
+    end
     if vim.tbl_contains({ "ts_ls", "cssls", "jsonls", "html" }, client.name) then
       no_format(client)
     end
@@ -143,22 +171,20 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
-local ts_ls_js = mason_pkg
-  .. "typescript-language-server/node_modules/typescript-language-server/lib/cli.mjs"
+local ts_ls_js = mason_pkg .. "typescript-language-server/node_modules/typescript-language-server/lib/cli.mjs"
 
 vim.lsp.config("ts_ls", {
-  cmd = (bun_bin and vim.fn.filereadable(ts_ls_js) == 1)
-    and { bun_bin, ts_ls_js, "--stdio" }
-    or  node_cmd("typescript-language-server", 512),
+  cmd = (bun_bin and vim.fn.filereadable(ts_ls_js) == 1) and { bun_bin, ts_ls_js, "--stdio" }
+    or node_cmd("typescript-language-server", 512),
   init_options = {
     preferences = { allowJs = true, checkJs = true },
-    tsserver    = { maxTsServerMemory = 2048 },  -- cap the tsserver child process (MB)
+    tsserver = { maxTsServerMemory = 2048 }, -- cap the tsserver child process (MB)
   },
 })
-vim.lsp.config("cssls",  { cmd = node_cmd "vscode-css-language-server" })
-vim.lsp.config("jsonls", { cmd = node_cmd "vscode-json-language-server" })
-vim.lsp.config("html",   { cmd = node_cmd "vscode-html-language-server" })
-vim.lsp.config("eslint", { cmd = node_cmd "vscode-eslint-language-server" })
+vim.lsp.config("cssls", { cmd = bun_cmd "vscode-css-language-server" })
+vim.lsp.config("jsonls", { cmd = bun_cmd "vscode-json-language-server" })
+vim.lsp.config("html", { cmd = bun_cmd "vscode-html-language-server" })
+vim.lsp.config("eslint", { cmd = bun_cmd "vscode-eslint-language-server" })
 
 -- ── Diagnostics display ───────────────────────────────────────────────────────
 

@@ -27,43 +27,67 @@ vim.g.clever_f_fix_key_direction = 1
 vim.g.clever_f_show_prompt = 1
 vim.g.clever_f_mark_char = 1
 
--- ── Treesitter (new API — nvim-treesitter was fully rewritten for Neovim 0.12)
--- The old `nvim-treesitter.configs` module no longer exists.
--- Setup only accepts `install_dir`; highlighting is a Neovim built-in.
-pcall(function()
-  -- Optional: only needed if you want a custom install_dir
-  -- require("nvim-treesitter").setup {}
+-- ── Treesitter ────────────────────────────────────────────────────────────────
+-- Extensions deferred to first BufReadPre — highlighting is a built-in and
+-- runs eagerly via the FileType autocmd below.
+vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
+  once = true,
+  callback = function()
+    pcall(function()
+      require("nvim-treesitter").install {
+        "vim",
+        "lua",
+        "vimdoc",
+        "html",
+        "css",
+        "javascript",
+        "typescript",
+        "tsx",
+        "python",
+        "go",
+        "rust",
+        "c",
+        "cpp",
+        "bash",
+        "json",
+        "yaml",
+        "markdown",
+        "markdown_inline",
+      }
 
-  -- Install parsers async (no-op if already installed)
-  require("nvim-treesitter").install {
-    "vim", "lua", "vimdoc",
-    "html", "css", "javascript", "typescript", "tsx",
-    "python", "go", "rust", "c", "cpp",
-    "bash", "json", "yaml", "markdown", "markdown_inline",
-  }
+      require("treesitter-context").setup {
+        enable = true,
+        max_lines = 0,
+        min_window_height = 0,
+        line_numbers = true,
+        multiline_threshold = 20,
+        trim_scope = "outer",
+        mode = "cursor",
+        zindex = 50,
+      }
 
-  require("treesitter-context").setup {
-    enable = true, max_lines = 0, min_window_height = 0,
-    line_numbers = true, multiline_threshold = 20,
-    trim_scope = "outer", mode = "cursor", zindex = 50,
-  }
+      local rd = require "rainbow-delimiters"
+      require("rainbow-delimiters.setup").setup {
+        strategy = {
+          [""] = rd.strategy["global"],
+          vim = rd.strategy["local"],
+        },
+        query = { [""] = "rainbow-delimiters", lua = "rainbow-blocks" },
+        highlight = {
+          "RainbowDelimiterRed",
+          "RainbowDelimiterYellow",
+          "RainbowDelimiterBlue",
+          "RainbowDelimiterOrange",
+          "RainbowDelimiterGreen",
+          "RainbowDelimiterViolet",
+          "RainbowDelimiterCyan",
+        },
+      }
 
-  local rd = require "rainbow-delimiters"
-  require("rainbow-delimiters.setup").setup {
-    strategy = {
-      [""] = rd.strategy["global"],
-      vim = rd.strategy["local"],
-    },
-    query = { [""] = "rainbow-delimiters", lua = "rainbow-blocks" },
-    highlight = {
-      "RainbowDelimiterRed", "RainbowDelimiterYellow", "RainbowDelimiterBlue",
-      "RainbowDelimiterOrange", "RainbowDelimiterGreen", "RainbowDelimiterViolet",
-      "RainbowDelimiterCyan",
-    },
-  }
-
-  require("nvim-ts-autotag").setup()
-end)
+      require("nvim-ts-autotag").setup()
+    end)
+  end,
+})
 
 -- Enable treesitter highlighting for all file types (Neovim 0.11+ built-in)
 vim.api.nvim_create_autocmd("FileType", {
@@ -72,63 +96,78 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- ── Telescope ────────────────────────────────────────────────────────────────
-local telescope = require "telescope"
-local actions   = require "telescope.actions"
+-- ── Telescope (lazy: deferred to VimEnter) ───────────────────────────────────
+vim.api.nvim_create_autocmd("VimEnter", {
+  once = true,
+  callback = function()
+    local telescope = require "telescope"
+    local actions = require "telescope.actions"
 
-local history_dir = vim.fn.expand "~/.local/share/nvim/databases"
-if vim.fn.isdirectory(history_dir) == 0 then
-  vim.fn.mkdir(history_dir, "p")
-end
+    local history_dir = vim.fn.expand "~/.local/share/nvim/databases"
+    if vim.fn.isdirectory(history_dir) == 0 then
+      vim.fn.mkdir(history_dir, "p")
+    end
 
-telescope.setup {
-  defaults = {
-    prompt_prefix   = "   ",
-    selection_caret = " ",
-    entry_prefix    = " ",
-    sorting_strategy = "ascending",
-    layout_config = {
-      horizontal = { prompt_position = "top", preview_width = 0.55 },
-      width = 0.87, height = 0.80,
-    },
-    mappings = {
-      i = {
-        ["<C-j>"] = actions.move_selection_next,
-        ["<C-k>"] = actions.move_selection_previous,
-        ["<C-n>"] = actions.cycle_history_next,
-        ["<C-p>"] = actions.cycle_history_prev,
+    telescope.setup {
+      defaults = {
+        prompt_prefix = "   ",
+        selection_caret = " ",
+        entry_prefix = " ",
+        sorting_strategy = "ascending",
+        layout_config = {
+          horizontal = { prompt_position = "top", preview_width = 0.55 },
+          width = 0.87,
+          height = 0.80,
+        },
+        mappings = {
+          i = {
+            ["<C-j>"] = actions.move_selection_next,
+            ["<C-k>"] = actions.move_selection_previous,
+            ["<C-n>"] = actions.cycle_history_next,
+            ["<C-p>"] = actions.cycle_history_prev,
+          },
+          n = {
+            ["q"] = actions.close,
+            ["<C-j>"] = actions.move_selection_next,
+            ["<C-k>"] = actions.move_selection_previous,
+            ["<C-n>"] = actions.cycle_history_next,
+            ["<C-p>"] = actions.cycle_history_prev,
+          },
+        },
+        history = {
+          path = history_dir .. "/telescope_history.sqlite3",
+          limit = 500,
+        },
       },
-      n = {
-        ["q"]     = actions.close,
-        ["<C-j>"] = actions.move_selection_next,
-        ["<C-k>"] = actions.move_selection_previous,
-        ["<C-n>"] = actions.cycle_history_next,
-        ["<C-p>"] = actions.cycle_history_prev,
-      },
-    },
-    history = {
-      path  = history_dir .. "/telescope_history.sqlite3",
-      limit = 500,
-    },
-  },
-}
-telescope.load_extension "smart_history"
-telescope.load_extension "fzf"
+    }
+    telescope.load_extension "smart_history"
+    telescope.load_extension "fzf"
+  end,
+})
 
 -- ── NvimTree (lazy: toggle command) ──────────────────────────────────────────
 require("nvim-tree").setup(require "configs.nvimtree")
 
--- ── Conform ───────────────────────────────────────────────────────────────────
-pcall(function()
-  require("conform").setup(require "configs.conform")
-end)
+-- ── Conform (lazy: first BufWritePre) ─────────────────────────────────────────
+vim.api.nvim_create_autocmd("BufWritePre", {
+  once = true,
+  callback = function()
+    pcall(function()
+      require("conform").setup(require "configs.conform")
+    end)
+  end,
+})
 
--- ── Render Markdown ───────────────────────────────────────────────────────────
-pcall(function()
-  require("render-markdown").setup {
-    file_types = { "markdown", "Avante" },
-  }
-end)
+-- ── Render Markdown (lazy: first markdown/Avante buffer) ──────────────────────
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown", "Avante" },
+  once = true,
+  callback = function()
+    pcall(function()
+      require("render-markdown").setup { file_types = { "markdown", "Avante" } }
+    end)
+  end,
+})
 
 -- ── Trouble ───────────────────────────────────────────────────────────────────
 require("trouble").setup {
@@ -136,60 +175,82 @@ require("trouble").setup {
     preview_float = {
       mode = "diagnostics",
       preview = {
-        type = "float", relative = "editor", border = "rounded",
-        title = "Preview", title_pos = "center",
-        position = { 0, -2 }, size = { width = 0.3, height = 0.3 }, zindex = 200,
+        type = "float",
+        relative = "editor",
+        border = "rounded",
+        title = "Preview",
+        title_pos = "center",
+        position = { 0, -2 },
+        size = { width = 0.3, height = 0.3 },
+        zindex = 200,
       },
     },
   },
 }
 
--- ── nvim-ufo (VSCode-like folding) ────────────────────────────────────────────
-local function ufo_provider(bufnr)
-  local function fallback(err, provider)
-    if type(err) == "string" and err:match "UfoFallbackException" then
-      return require("ufo").getFolds(bufnr, provider)
-    end
-    return require("promise").reject(err)
-  end
-  return require("ufo").getFolds(bufnr, "lsp")
-    :catch(function(err) return fallback(err, "treesitter") end)
-    :catch(function(err) return fallback(err, "indent") end)
-end
-
-require("ufo").setup {
-  provider_selector = function() return ufo_provider end,
-  fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
-    local suffix = (" 󰁂 %d "):format(endLnum - lnum)
-    local sufWidth = vim.fn.strdisplaywidth(suffix)
-    local targetWidth = width - sufWidth
-    local curWidth = 0
-    local newVirtText = {}
-    for _, chunk in ipairs(virtText) do
-      local chunkText  = chunk[1]
-      local chunkWidth = vim.fn.strdisplaywidth(chunkText)
-      if targetWidth > curWidth + chunkWidth then
-        table.insert(newVirtText, chunk)
-      else
-        chunkText = truncate(chunkText, targetWidth - curWidth)
-        local hlGroup = chunk[2]
-        table.insert(newVirtText, { chunkText, hlGroup })
-        chunkWidth = vim.fn.strdisplaywidth(chunkText)
-        if curWidth + chunkWidth < targetWidth then
-          suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
+-- ── nvim-ufo (lazy: first BufReadPre) ─────────────────────────────────────────
+vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
+  once = true,
+  callback = function()
+    local function ufo_provider(bufnr)
+      local function fallback(err, provider)
+        if type(err) == "string" and err:match "UfoFallbackException" then
+          return require("ufo").getFolds(bufnr, provider)
         end
-        break
+        return require("promise").reject(err)
       end
-      curWidth = curWidth + chunkWidth
+      return require("ufo")
+        .getFolds(bufnr, "lsp")
+        :catch(function(err)
+          return fallback(err, "treesitter")
+        end)
+        :catch(function(err)
+          return fallback(err, "indent")
+        end)
     end
-    table.insert(newVirtText, { suffix, "MoreMsg" })
-    return newVirtText
-  end,
-}
 
--- ── Early retirement ──────────────────────────────────────────────────────────
-require("early-retirement").setup {
-  retirementAgeMins = 0,
-  minimumBufferNum = 6,
-  notificationOnAutoClose = true,
-}
+    require("ufo").setup {
+      provider_selector = function()
+        return ufo_provider
+      end,
+      fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
+        local suffix = (" 󰁂 %d "):format(endLnum - lnum)
+        local sufWidth = vim.fn.strdisplaywidth(suffix)
+        local targetWidth = width - sufWidth
+        local curWidth = 0
+        local newVirtText = {}
+        for _, chunk in ipairs(virtText) do
+          local chunkText = chunk[1]
+          local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+          if targetWidth > curWidth + chunkWidth then
+            table.insert(newVirtText, chunk)
+          else
+            chunkText = truncate(chunkText, targetWidth - curWidth)
+            local hlGroup = chunk[2]
+            table.insert(newVirtText, { chunkText, hlGroup })
+            chunkWidth = vim.fn.strdisplaywidth(chunkText)
+            if curWidth + chunkWidth < targetWidth then
+              suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
+            end
+            break
+          end
+          curWidth = curWidth + chunkWidth
+        end
+        table.insert(newVirtText, { suffix, "MoreMsg" })
+        return newVirtText
+      end,
+    }
+  end,
+})
+
+-- ── Early retirement (lazy: VimEnter) ─────────────────────────────────────────
+vim.api.nvim_create_autocmd("VimEnter", {
+  once = true,
+  callback = function()
+    require("early-retirement").setup {
+      retirementAgeMins = 0,
+      minimumBufferNum = 6,
+      notificationOnAutoClose = true,
+    }
+  end,
+})

@@ -59,10 +59,13 @@ g.loaded_python3_provider = 0
 g.loaded_perl_provider = 0
 g.loaded_ruby_provider = 0
 
--- Add mason/bin to PATH so LSP server executables are found
-local sep = vim.fn.has "win32" ~= 0 and "\\" or "/"
+-- Add mise shims + mason/bin to PATH so subprocesses (lazygit, GIT_EDITOR,
+-- flatten.nvim, etc.) can find mise-managed binaries like nvim itself.
+local sep   = vim.fn.has "win32" ~= 0 and "\\" or "/"
 local delim = vim.fn.has "win32" ~= 0 and ";" or ":"
-vim.env.PATH = table.concat({ vim.fn.stdpath "data", "mason", "bin" }, sep) .. delim .. vim.env.PATH
+local mise_shims = vim.fn.expand "~/.local/share/mise/shims"
+local mason_bin  = table.concat({ vim.fn.stdpath "data", "mason", "bin" }, sep)
+vim.env.PATH = mise_shims .. delim .. mason_bin .. delim .. vim.env.PATH
 
 -- Session options (required by auto-session for correct filetype/highlight restore)
 o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
