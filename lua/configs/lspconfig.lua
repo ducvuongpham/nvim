@@ -138,11 +138,11 @@ end
 
 local bun_bin = find_bun()
 
-local function bun_cmd(script)
+local function bun_cmd(script, max_mb)
   if bun_bin then
-    return { bun_bin, mason_bin .. script, "--stdio" }
+    return { bun_bin, "--max-old-space-size=" .. (max_mb or 256), mason_bin .. script, "--stdio" }
   end
-  return node_cmd(script)
+  return node_cmd(script, max_mb)
 end
 
 -- Disable formatting for node servers — Prettier/conform handles it
