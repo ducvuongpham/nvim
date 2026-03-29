@@ -77,6 +77,7 @@ vim.pack.add({
   { src = "https://github.com/echasnovski/mini.nvim" },
 
   -- AI / coding
+  { src = "https://github.com/zbirenbaum/copilot.lua" },
   { src = "https://github.com/olimorris/codecompanion.nvim" },
   { src = "https://github.com/coder/claudecode.nvim" },
   { src = "https://github.com/j-hui/fidget.nvim" },
@@ -98,7 +99,6 @@ vim.pack.add({
   { src = "https://github.com/nvim-tree/nvim-tree.lua" },
 
   -- VimL plugins (need load = true so their plugin/*.vim files are sourced)
-  { src = "https://github.com/github/copilot.vim" },
   { src = "https://github.com/rhysd/clever-f.vim" },
   { src = "https://github.com/andymass/vim-matchup" },
 }, { confirm = false, load = true })

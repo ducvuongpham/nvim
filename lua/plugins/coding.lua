@@ -1,8 +1,14 @@
--- ── Copilot (VimL — already sourced via packs.lua load=true) ─────────────────
-vim.b.workspace_folder = vim.fn.expand "%:p:h"
-vim.g.copilot_workspace_folders = "~/Program/aircloset/"
-vim.api.nvim_buf_set_var(0, "workspace_folder", vim.fn.getcwd())
-vim.g.copilot_node_command = "~/.local/share/mise/installs/node/latest/bin/node"
+-- ── Copilot ───────────────────────────────────────────────────────────────────
+require("copilot").setup {
+  suggestion = {
+    enabled      = true,
+    auto_trigger = true,
+    keymap       = { accept = false },  -- Tab handled in cmp mapping below
+  },
+  panel = { enabled = false },
+  copilot_node_command = vim.fn.expand "~/.local/share/mise/installs/node/latest/bin/node",
+  workspace_folders    = { vim.fn.expand "~/Program/aircloset/" },
+}
 
 -- ── Completion (lazy: load on InsertEnter) ────────────────────────────────────
 vim.api.nvim_create_autocmd("InsertEnter", {
