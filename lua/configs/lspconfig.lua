@@ -43,13 +43,6 @@ M.on_attach = function(client, bufnr)
   pcall(vim.keymap.del, "n", "grt", { buffer = bufnr })
 end
 
--- ── Helper ────────────────────────────────────────────────────────────────────
-
-local function get_mise_node_cmd(cmd_name)
-  local mason_bin = vim.fn.stdpath "data" .. "/mason/bin/" .. cmd_name
-  return { "mise", "x", "node@latest", "--", mason_bin, "--stdio" }
-end
-
 -- ── Standard servers ──────────────────────────────────────────────────────────
 
 local servers = {
@@ -84,55 +77,86 @@ for _, lsp in ipairs(servers) do
   vim.lsp.enable(lsp)
 end
 
--- ── Node.js-based servers (via mise) ─────────────────────────────────────────
+-- ── Node.js-based servers ─────────────────────────────────────────────────────
+-- Mason bins are #!/usr/bin/env node scripts. The system node may be too old
+-- (lacks ??= etc.), so we resolve node explicitly via mise.
 
-local node_servers = {
-  ts_ls = "typescript-language-server",
-  cssls = "vscode-css-language-server",
-  jsonls = "vscode-json-language-server",
-  html = "vscode-html-language-server",
-}
+local mason_bin = vim.fn.stdpath "data" .. "/mason/bin/"
 
-for server, cmd_name in pairs(node_servers) do
-  local config = {
-    on_attach = function(client, bufnr)
-      M.on_attach(client, bufnr)
-      -- Let Prettier/conform handle formatting for these
-      client.server_capabilities.documentFormattingProvider = false
-      client.server_capabilities.documentRangeFormattingProvider = false
-    end,
-    on_init = M.on_init,
-    capabilities = M.capabilities,
-    cmd = get_mise_node_cmd(cmd_name),
-  }
-
-  if server == "ts_ls" then
-    config.init_options = {
-      preferences = { allowJs = true, checkJs = true },
-    }
-    config.filetypes = {
-      "javascript", "javascriptreact", "javascript.jsx",
-      "typescript", "typescriptreact", "typescript.tsx",
-    }
+-- Resolve the node binary for LSP servers.
+-- We MUST NOT use `mise which node` — it respects per-project node versions,
+-- so opening a project with an old node would break the LSP servers.
+-- Instead, find the newest installed node in mise installs directly.
+local function find_lsp_node()
+  local installs = vim.fn.expand "~/.local/share/mise/installs/node/"
+  if vim.fn.isdirectory(installs) ~= 1 then return "node" end
+  local best_path, best_major = nil, 0
+  for name in vim.fs.dir(installs) do
+    local major = tonumber(name:match "^(%d+)%.")
+    if major and major > best_major then
+      local candidate = installs .. name .. "/bin/node"
+      if vim.fn.executable(candidate) == 1 then
+        best_path, best_major = candidate, major
+      end
+    end
   end
-
-  vim.lsp.config(server, config)
-  vim.lsp.enable(server)
+  return best_path or "node"
 end
+local node_bin = find_lsp_node()
+
+local function node_cmd(script)
+  return { node_bin, mason_bin .. script, "--stdio" }
+end
+
+local node_server_on_attach = function(client, bufnr)
+  M.on_attach(client, bufnr)
+  -- Let Prettier/conform handle formatting for these
+  client.server_capabilities.documentFormattingProvider = false
+  client.server_capabilities.documentRangeFormattingProvider = false
+end
+
+vim.lsp.config("ts_ls", {
+  on_attach = node_server_on_attach,
+  on_init = M.on_init,
+  capabilities = M.capabilities,
+  cmd = node_cmd "typescript-language-server",
+  init_options = { preferences = { allowJs = true, checkJs = true } },
+  filetypes = {
+    "javascript", "javascriptreact", "javascript.jsx",
+    "typescript", "typescriptreact", "typescript.tsx",
+  },
+})
+vim.lsp.enable "ts_ls"
+
+vim.lsp.config("cssls", {
+  on_attach = node_server_on_attach,
+  on_init = M.on_init,
+  capabilities = M.capabilities,
+  cmd = node_cmd "vscode-css-language-server",
+})
+vim.lsp.enable "cssls"
+
+vim.lsp.config("jsonls", {
+  on_attach = node_server_on_attach,
+  on_init = M.on_init,
+  capabilities = M.capabilities,
+  cmd = node_cmd "vscode-json-language-server",
+})
+vim.lsp.enable "jsonls"
+
+vim.lsp.config("html", {
+  on_attach = node_server_on_attach,
+  on_init = M.on_init,
+  capabilities = M.capabilities,
+  cmd = node_cmd "vscode-html-language-server",
+})
+vim.lsp.enable "html"
 
 -- ── ESLint LSP ────────────────────────────────────────────────────────────────
 
-local function get_eslint_cmd()
-  local mason_eslint = vim.fn.stdpath "data" .. "/mason/bin/vscode-eslint-language-server"
-  if vim.fn.filereadable(mason_eslint) == 1 then
-    return { "mise", "x", "node@latest", "--", mason_eslint, "--stdio" }
-  end
-  return nil
-end
-
-local eslint_cmd = get_eslint_cmd()
-if eslint_cmd then
+if vim.fn.filereadable(mason_bin .. "vscode-eslint-language-server") == 1 then
   vim.lsp.config("eslint", {
+    cmd = node_cmd "vscode-eslint-language-server",
     on_attach = function(client, bufnr)
       M.on_attach(client, bufnr)
       -- Auto-fix on save
@@ -148,7 +172,6 @@ if eslint_cmd then
     end,
     on_init = M.on_init,
     capabilities = M.capabilities,
-    cmd = eslint_cmd,
     filetypes = { "javascript", "javascriptreact", "typescript", "typescriptreact", "vue", "svelte", "astro" },
     settings = {
       eslint = {

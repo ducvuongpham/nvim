@@ -39,6 +39,9 @@ o.undofile = true
 o.updatetime = 250
 o.scrolloff = 8
 
+-- Session options (required by auto-session for correct filetype/highlight restore)
+o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+
 -- Spell checking
 vim.opt.spell = true
 vim.opt.spelllang = "en_us,cjk"

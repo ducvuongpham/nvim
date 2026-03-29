@@ -1,226 +1,152 @@
-return {
-  -- Snacks.nvim utilities (bigfile detection, bufdelete, etc.)
-  {
-    "folke/snacks.nvim",
-    priority = 1000,
-    lazy = false,
-    opts = {
-      bigfile = {
-        enabled = true,
-        notify = true,
-        size = 1.5 * 1024 * 1024,
-        line_length = 1000,
-        setup = function(ctx)
-          vim.cmd "NoMatchParen"
-          vim.wo.foldmethod = "manual"
-          vim.wo.statuscolumn = ""
-          vim.wo.conceallevel = 0
-          vim.b.minianimate_disable = true
-          vim.schedule(function()
-            vim.bo[ctx.buf].syntax = ctx.ft
-          end)
-        end,
+-- ── Snacks (eager — bigfile detection must run before any buffer opens) ────────
+require("snacks").setup {
+  bigfile = {
+    enabled = true,
+    notify = true,
+    size = 1.5 * 1024 * 1024,
+    line_length = 1000,
+    setup = function(ctx)
+      vim.cmd "NoMatchParen"
+      vim.wo.foldmethod = "manual"
+      vim.wo.statuscolumn = ""
+      vim.wo.conceallevel = 0
+      vim.b.minianimate_disable = true
+      vim.schedule(function()
+        vim.bo[ctx.buf].syntax = ctx.ft
+      end)
+    end,
+  },
+}
+
+-- ── Dressing (eager — overrides vim.ui before any prompts appear) ─────────────
+require("dressing").setup {}
+
+-- ── Clever-f (VimL — already sourced via packs.lua load=true) ────────────────
+vim.g.clever_f_intelligent_case = 1
+vim.g.clever_f_fix_key_direction = 1
+vim.g.clever_f_show_prompt = 1
+vim.g.clever_f_mark_char = 1
+
+-- ── Treesitter (new API — nvim-treesitter was fully rewritten for Neovim 0.12)
+-- The old `nvim-treesitter.configs` module no longer exists.
+-- Setup only accepts `install_dir`; highlighting is a Neovim built-in.
+pcall(function()
+  -- Optional: only needed if you want a custom install_dir
+  -- require("nvim-treesitter").setup {}
+
+  -- Install parsers async (no-op if already installed)
+  require("nvim-treesitter").install {
+    "vim", "lua", "vimdoc",
+    "html", "css", "javascript", "typescript", "tsx",
+    "python", "go", "rust", "c", "cpp",
+    "bash", "json", "yaml", "markdown", "markdown_inline",
+  }
+
+  require("treesitter-context").setup {
+    enable = true, max_lines = 0, min_window_height = 0,
+    line_numbers = true, multiline_threshold = 20,
+    trim_scope = "outer", mode = "cursor", zindex = 50,
+  }
+
+  local rd = require "rainbow-delimiters"
+  require("rainbow-delimiters.setup").setup {
+    strategy = {
+      [""] = rd.strategy["global"],
+      vim = rd.strategy["local"],
+    },
+    query = { [""] = "rainbow-delimiters", lua = "rainbow-blocks" },
+    highlight = {
+      "RainbowDelimiterRed", "RainbowDelimiterYellow", "RainbowDelimiterBlue",
+      "RainbowDelimiterOrange", "RainbowDelimiterGreen", "RainbowDelimiterViolet",
+      "RainbowDelimiterCyan",
+    },
+  }
+end)
+
+-- Enable treesitter highlighting for all file types (Neovim 0.11+ built-in)
+vim.api.nvim_create_autocmd("FileType", {
+  callback = function()
+    pcall(vim.treesitter.start)
+  end,
+})
+
+-- ── Telescope ────────────────────────────────────────────────────────────────
+-- Keybindings use require("telescope.builtin") directly, so no :Telescope
+-- command registration needed. We just configure the defaults here.
+local telescope = require "telescope"
+local actions   = require "telescope.actions"
+
+local history_dir = vim.fn.expand "~/.local/share/nvim/databases"
+if vim.fn.isdirectory(history_dir) == 0 then
+  vim.fn.mkdir(history_dir, "p")
+end
+
+telescope.setup {
+  defaults = {
+    prompt_prefix = "   ",
+    selection_caret = " ",
+    entry_prefix = " ",
+    sorting_strategy = "ascending",
+    layout_config = {
+      horizontal = { prompt_position = "top", preview_width = 0.55 },
+      width = 0.87, height = 0.80, preview_cutoff = 120,
+    },
+    mappings = {
+      i = {
+        ["<C-j>"] = actions.move_selection_next,
+        ["<C-k>"] = actions.move_selection_previous,
+        ["<C-n>"] = actions.cycle_history_next,
+        ["<C-p>"] = actions.cycle_history_prev,
+      },
+      n = {
+        ["q"]     = actions.close,
+        ["<C-j>"] = actions.move_selection_next,
+        ["<C-k>"] = actions.move_selection_previous,
+        ["<C-n>"] = actions.cycle_history_next,
+        ["<C-p>"] = actions.cycle_history_prev,
+      },
+    },
+    history = {
+      path = history_dir .. "/telescope_history.sqlite3",
+      limit = 500,
+    },
+  },
+}
+telescope.load_extension "smart_history"
+telescope.load_extension "fzf"
+
+-- ── NvimTree (lazy: toggle command) ──────────────────────────────────────────
+require("nvim-tree").setup(require "configs.nvimtree")
+
+-- ── Conform ───────────────────────────────────────────────────────────────────
+pcall(function()
+  require("conform").setup(require "configs.conform")
+end)
+
+-- ── Render Markdown ───────────────────────────────────────────────────────────
+pcall(function()
+  require("render-markdown").setup {
+    file_types = { "markdown", "Avante" },
+  }
+end)
+
+-- ── Trouble ───────────────────────────────────────────────────────────────────
+require("trouble").setup {
+  modes = {
+    preview_float = {
+      mode = "diagnostics",
+      preview = {
+        type = "float", relative = "editor", border = "rounded",
+        title = "Preview", title_pos = "center",
+        position = { 0, -2 }, size = { width = 0.3, height = 0.3 }, zindex = 200,
       },
     },
   },
+}
 
-  -- Treesitter: syntax highlighting and structural editing
-  {
-    "nvim-treesitter/nvim-treesitter",
-    event = { "BufReadPost", "BufNewFile" },
-    cmd = { "TSInstall", "TSBufEnable", "TSBufDisable", "TSModuleInfo" },
-    build = ":TSUpdate",
-    opts = {
-      ensure_installed = {
-        "vim", "lua", "vimdoc",
-        "html", "css", "javascript", "typescript", "tsx",
-        "python", "go", "rust", "c", "cpp",
-        "bash", "json", "yaml", "markdown", "markdown_inline",
-      },
-      highlight = {
-        enable = true,
-        use_languagetree = true,
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          scope_incremental = false,
-          node_decremental = "<bs>",
-        },
-      },
-    },
-    config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
-    end,
-  },
-
-  -- Show context (function/class) at top of buffer
-  {
-    "nvim-treesitter/nvim-treesitter-context",
-    event = "BufReadPost",
-    opts = {
-      enable = true,
-      max_lines = 0,
-      min_window_height = 0,
-      line_numbers = true,
-      multiline_threshold = 20,
-      trim_scope = "outer",
-      mode = "cursor",
-      zindex = 50,
-    },
-  },
-
-  -- Formatting
-  {
-    "stevearc/conform.nvim",
-    event = "BufWritePre",
-    opts = function()
-      return require "configs.conform"
-    end,
-  },
-
-  -- FZF native sorter for Telescope
-  {
-    "nvim-telescope/telescope-fzf-native.nvim",
-    build = "make",
-    lazy = true,
-  },
-
-  -- Zen mode
-  {
-    "folke/zen-mode.nvim",
-    cmd = "ZenMode",
-    opts = {
-      window = {
-        backdrop = 0.95,
-        width = 0.8,
-        height = 1,
-        options = {
-          signcolumn = "no",
-          number = false,
-          relativenumber = false,
-          cursorline = false,
-          foldcolumn = "0",
-          list = false,
-        },
-      },
-    },
-  },
-
-  -- Rainbow bracket matching
-  {
-    "HiPhish/rainbow-delimiters.nvim",
-    dependencies = "nvim-treesitter/nvim-treesitter",
-    event = "BufReadPost",
-    config = function()
-      local rd = require "rainbow-delimiters"
-      require("rainbow-delimiters.setup").setup {
-        strategy = {
-          [""] = rd.strategy["global"],
-          vim = rd.strategy["local"],
-        },
-        query = {
-          [""] = "rainbow-delimiters",
-          lua = "rainbow-blocks",
-        },
-        highlight = {
-          "RainbowDelimiterRed", "RainbowDelimiterYellow", "RainbowDelimiterBlue",
-          "RainbowDelimiterOrange", "RainbowDelimiterGreen", "RainbowDelimiterViolet",
-          "RainbowDelimiterCyan",
-        },
-      }
-    end,
-  },
-
-  -- Render markdown nicely
-  {
-    "MeanderingProgrammer/render-markdown.nvim",
-    ft = { "markdown", "Avante" },
-    opts = {
-      file_types = { "markdown", "Avante" },
-    },
-  },
-
-  -- Better vim.ui.select / vim.ui.input
-  {
-    "stevearc/dressing.nvim",
-    event = "VeryLazy",
-  },
-
-  -- Enhanced f/F/t/T motions
-  {
-    "rhysd/clever-f.vim",
-    event = "BufReadPost",
-    init = function()
-      vim.g.clever_f_intelligent_case = 1
-      vim.g.clever_f_fix_key_direction = 1
-      vim.g.clever_f_show_prompt = 1
-      vim.g.clever_f_mark_char = 1
-    end,
-  },
-
-  -- Prompt builder for context-aware AI prompts
-  {
-    "kylesnowschwartz/prompt-tower.nvim",
-    cmd = { "PromptTower", "PromptTowerSelect", "PromptTowerGenerate", "PromptTowerClear" },
-    config = function()
-      require("prompt-tower").setup {}
-    end,
-  },
-
-  -- Auto-close inactive buffers
-  {
-    "chrisgrieser/nvim-early-retirement",
-    event = "VeryLazy",
-    opts = {
-      retirementAgeMins = 0,
-      minimumBufferNum = 6,
-      notificationOnAutoClose = true,
-    },
-  },
-
-  -- Diagnostics list, symbol browser, LSP navigation
-  {
-    "folke/trouble.nvim",
-    cmd = "Trouble",
-    opts = {
-      modes = {
-        preview_float = {
-          mode = "diagnostics",
-          preview = {
-            type = "float",
-            relative = "editor",
-            border = "rounded",
-            title = "Preview",
-            title_pos = "center",
-            position = { 0, -2 },
-            size = { width = 0.3, height = 0.3 },
-            zindex = 200,
-          },
-        },
-      },
-    },
-    keys = {
-      { "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>",                    desc = "Diagnostics" },
-      { "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",       desc = "Buffer diagnostics" },
-      { "<leader>cs", "<cmd>Trouble symbols toggle focus=false<cr>",            desc = "Symbols" },
-      { "<leader>cl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", desc = "LSP refs/defs" },
-      { "<leader>xL", "<cmd>Trouble loclist toggle<cr>",                        desc = "Location list" },
-      { "<leader>xQ", "<cmd>Trouble qflist toggle<cr>",                         desc = "Quickfix list" },
-    },
-  },
-
-  -- Inline diagnostics (replaces virtual_text)
-  {
-    "rachartier/tiny-inline-diagnostic.nvim",
-    event = "LspAttach",
-    priority = 1000,
-    config = function()
-      require("tiny-inline-diagnostic").setup()
-    end,
-  },
+-- ── Early retirement ──────────────────────────────────────────────────────────
+require("early-retirement").setup {
+  retirementAgeMins = 0,
+  minimumBufferNum = 6,
+  notificationOnAutoClose = true,
 }

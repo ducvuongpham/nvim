@@ -1,44 +1,19 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Bootstrap lazy.nvim
-local lazypath = vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
-if not vim.uv.fs_stat(lazypath) then
-  vim.fn.system {
-    "git", "clone", "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", lazypath,
-  }
-end
-vim.opt.rtp:prepend(lazypath)
-
-require("lazy").setup({ import = "plugins" }, {
-  defaults = { lazy = true },
-  install = { colorscheme = { "catppuccin" } },
-  ui = {
-    icons = {
-      ft = "",
-      lazy = "󰂠 ",
-      loaded = "",
-      not_loaded = "",
-    },
-  },
-  performance = {
-    rtp = {
-      disabled_plugins = {
-        "2html_plugin", "tohtml", "getscript", "getscriptPlugin",
-        "gzip", "logipat", "netrw", "netrwPlugin", "netrwSettings",
-        "netrwFileHandlers", "matchit", "tar", "tarPlugin", "rrhelper",
-        "spellfile_plugin", "vimball", "vimballPlugin", "zip", "zipPlugin",
-        "tutor", "rplugin", "syntax", "synmenu", "optwin", "compiler",
-        "bugreport", "ftplugin",
-      },
-    },
-  },
-})
+require "packs"    -- install all plugins via vim.pack (adds to rtp)
 
 require "options"
 require "autocmds"
+
+-- Plugin setup (dependency order matters — deps before dependents)
+require "plugins.ui"      -- catppuccin, lualine, barbecue
+require "plugins.mini"    -- mini.nvim modules, vim-matchup, nvim-ts-autotag
+require "plugins.git"     -- gitsigns, lazygit, blame
+require "plugins.util"    -- auto-session, flatten, snow, duck
+require "plugins.coding"  -- copilot (VimL), cmp, codecompanion, claudecode
+require "plugins.editor"  -- snacks, treesitter, telescope, conform, nvimtree, trouble…
+require "plugins.lsp"     -- LSP + mason + none-ls (lazy on BufReadPre)
 
 vim.schedule(function()
   require "mappings"

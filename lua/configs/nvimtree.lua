@@ -22,6 +22,13 @@ end
 
 return {
   on_attach = my_on_attach,
+  disable_netrw = true,
+  hijack_cursor = true,
+  sync_root_with_cwd = true,
+  update_focused_file = {
+    enable = true,
+    update_root = false,
+  },
   filters = {
     dotfiles = false,
     git_clean = false,
