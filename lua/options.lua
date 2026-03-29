@@ -19,7 +19,9 @@ o.softtabstop = 2
 
 -- UI
 o.termguicolors = true
-opt.fillchars = { eob = " " }
+-- opt.fillchars = { eob = " ", foldopen = "▾", foldclose = "▸", foldsep = "│", fold = " " }
+opt.fillchars = "eob: ,fold: ,foldopen:,foldsep: ,foldinner: ,foldclose:"
+-- opt.fillchars = 'eob: ,fold: ,foldopen:▾,foldsep: ,foldinner: ,foldclose:▸'
 o.ignorecase = true
 o.smartcase = true
 o.mouse = "a"
@@ -34,6 +36,12 @@ o.ruler = false
 o.splitbelow = true
 o.splitright = true
 
+-- Folding (nvim-ufo: VSCode-like)
+o.foldcolumn = "1"
+o.foldlevel = 99 -- start with everything open
+o.foldlevelstart = 99
+o.foldenable = true
+
 -- Misc
 opt.shortmess:append "sI"
 o.signcolumn = "yes"
@@ -46,13 +54,13 @@ o.scrolloff = 8
 opt.whichwrap:append "<>[]hl"
 
 -- Disable unused providers (speeds up startup)
-g.loaded_node_provider   = 0
+g.loaded_node_provider = 0
 g.loaded_python3_provider = 0
-g.loaded_perl_provider   = 0
-g.loaded_ruby_provider   = 0
+g.loaded_perl_provider = 0
+g.loaded_ruby_provider = 0
 
 -- Add mason/bin to PATH so LSP server executables are found
-local sep   = vim.fn.has "win32" ~= 0 and "\\" or "/"
+local sep = vim.fn.has "win32" ~= 0 and "\\" or "/"
 local delim = vim.fn.has "win32" ~= 0 and ";" or ":"
 vim.env.PATH = table.concat({ vim.fn.stdpath "data", "mason", "bin" }, sep) .. delim .. vim.env.PATH
 

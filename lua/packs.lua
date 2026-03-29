@@ -23,6 +23,8 @@ vim.pack.add({
   { src = "https://github.com/nvim-lualine/lualine.nvim" },
   { src = "https://github.com/SmiteshP/nvim-navic" },
   { src = "https://github.com/utilyre/barbecue.nvim" },
+  { src = "https://github.com/NvChad/base46" },
+  { src = "https://github.com/NvChad/ui" },
 
   -- Editor
   { src = "https://github.com/folke/which-key.nvim" },
@@ -81,6 +83,10 @@ vim.pack.add({
   { src = "https://github.com/echasnovski/mini.pick",                       name = "mini.pick" },
   { src = "https://github.com/ibhagwan/fzf-lua" },
   { src = "https://github.com/ravitemer/mcphub.nvim" },
+
+  -- Folding
+  { src = "https://github.com/kevinhwang91/promise-async" },
+  { src = "https://github.com/kevinhwang91/nvim-ufo" },
 
   -- Utilities
   { src = "https://github.com/rmagatti/auto-session" },

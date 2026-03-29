@@ -1,5 +1,6 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
+vim.g.base46_cache = vim.fn.stdpath "data" .. "/base46/"
 
 require "packs"    -- install all plugins via vim.pack (adds to rtp)
 

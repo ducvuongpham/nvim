@@ -9,6 +9,7 @@ local map = vim.keymap.set
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
     local bufnr = args.buf
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
     local function opts(desc)
       return { buffer = bufnr, silent = true, desc = desc }
     end
@@ -20,8 +21,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
     map("n", "K",          vim.lsp.buf.hover,           opts "Hover docs")
     map("n", "<leader>sh", vim.lsp.buf.signature_help, opts "Signature help")
     map("n", "<leader>D",  vim.lsp.buf.type_definition, opts "Type definition")
-    map("n", "<leader>ra", vim.lsp.buf.rename,          opts "Rename symbol")
+    map("n", "<leader>ra", function() require("nvchad.lsp.renamer")() end, opts "Rename symbol")
     map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts "Code action")
+
+    -- NvChad LSP signature (auto-shows signature help on trigger chars)
+    if client then
+      pcall(require("nvchad.lsp.signature").setup, client, bufnr)
+    end
 
     -- Remove Neovim 0.11 default gr* mappings that conflict
     pcall(vim.keymap.del, "n", "grr", { buffer = bufnr })
@@ -39,6 +45,12 @@ local capabilities = vim.tbl_deep_extend(
   vim.lsp.protocol.make_client_capabilities(),
   require("cmp_nvim_lsp").default_capabilities()
 )
+
+-- nvim-ufo: tell servers we support foldingRange so they send fold regions
+capabilities.textDocument.foldingRange = {
+  dynamicRegistration = false,
+  lineFoldingOnly = true,
+}
 
 vim.lsp.config("*", {
   capabilities = capabilities,

@@ -28,14 +28,12 @@ require("mini.indentscope").setup {
     animation = require("mini.indentscope").gen_animation.none(),
   },
 }
+vim.api.nvim_set_hl(0, "MiniIndentscopeSymbol", { fg = "#b4befe" })
 
 require("mini.cursorword").setup()
 require("mini.splitjoin").setup()
 require("mini.operators").setup { replace = { prefix = "gR" } }
-require("mini.tabline").setup()
-
--- ── HTML/JSX tag auto-close ───────────────────────────────────────────────────
-require("nvim-ts-autotag").setup()
+-- require("mini.tabline").setup()
 
 -- ── Enhanced % matching ───────────────────────────────────────────────────────
 -- vim-matchup is a VimL plugin (loaded via packs.lua load=true).

@@ -1,6 +1,9 @@
 local cmp     = require "cmp"
 local luasnip  = require "luasnip"
 
+-- Load NvChad cmp highlights from base46 cache
+pcall(dofile, vim.g.base46_cache .. "cmp")
+
 cmp.setup {
   completion = { completeopt = "menu,menuone" },
 
@@ -47,6 +50,9 @@ cmp.setup {
       end
     end, { "i", "s" }),
   },
+
+  formatting = require("nvchad.cmp").formatting,
+  window     = require("nvchad.cmp").window,
 
   sources = {
     { name = "nvim_lsp" },

@@ -61,6 +61,8 @@ pcall(function()
       "RainbowDelimiterCyan",
     },
   }
+
+  require("nvim-ts-autotag").setup()
 end)
 
 -- Enable treesitter highlighting for all file types (Neovim 0.11+ built-in)
@@ -140,6 +142,49 @@ require("trouble").setup {
       },
     },
   },
+}
+
+-- ── nvim-ufo (VSCode-like folding) ────────────────────────────────────────────
+local function ufo_provider(bufnr)
+  local function fallback(err, provider)
+    if type(err) == "string" and err:match "UfoFallbackException" then
+      return require("ufo").getFolds(bufnr, provider)
+    end
+    return require("promise").reject(err)
+  end
+  return require("ufo").getFolds(bufnr, "lsp")
+    :catch(function(err) return fallback(err, "treesitter") end)
+    :catch(function(err) return fallback(err, "indent") end)
+end
+
+require("ufo").setup {
+  provider_selector = function() return ufo_provider end,
+  fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
+    local suffix = (" 󰁂 %d "):format(endLnum - lnum)
+    local sufWidth = vim.fn.strdisplaywidth(suffix)
+    local targetWidth = width - sufWidth
+    local curWidth = 0
+    local newVirtText = {}
+    for _, chunk in ipairs(virtText) do
+      local chunkText  = chunk[1]
+      local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+      if targetWidth > curWidth + chunkWidth then
+        table.insert(newVirtText, chunk)
+      else
+        chunkText = truncate(chunkText, targetWidth - curWidth)
+        local hlGroup = chunk[2]
+        table.insert(newVirtText, { chunkText, hlGroup })
+        chunkWidth = vim.fn.strdisplaywidth(chunkText)
+        if curWidth + chunkWidth < targetWidth then
+          suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
+        end
+        break
+      end
+      curWidth = curWidth + chunkWidth
+    end
+    table.insert(newVirtText, { suffix, "MoreMsg" })
+    return newVirtText
+  end,
 }
 
 -- ── Early retirement ──────────────────────────────────────────────────────────
