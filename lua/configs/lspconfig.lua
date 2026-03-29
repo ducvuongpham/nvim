@@ -90,27 +90,34 @@ vim.lsp.config("lua_ls", {
 -- Node servers: override cmd to use a fixed, modern node (not the per-project one).
 -- mason bin scripts use #!/usr/bin/env node and may pick up an old system node.
 local function find_lsp_node()
-  local installs = vim.fn.expand "~/.local/share/mise/installs/node/"
-  if vim.fn.isdirectory(installs) ~= 1 then return "node" end
-  local best_path, best_major = nil, 0
-  for name in vim.fs.dir(installs) do
-    local major = tonumber(name:match "^(%d+)%.")
-    if major and major > best_major then
-      local candidate = installs .. name .. "/bin/node"
-      if vim.fn.executable(candidate) == 1 then
-        best_path, best_major = candidate, major
-      end
-    end
-  end
-  return best_path or "node"
+  -- Prefer mise's `latest` symlink — always points to the newest installed version
+  local latest = vim.fn.expand "~/.local/share/mise/installs/node/latest/bin/node"
+  if vim.fn.executable(latest) == 1 then return latest end
+  -- Fallback: ask mise directly
+  local r = vim.system({ "mise", "x", "node@latest", "--", "node", "--print-exe-path" }):wait()
+  if r and r.code == 0 then return vim.trim(r.stdout) end
+  return "node"
 end
 
 local node_bin  = find_lsp_node()
 local mason_bin = vim.fn.stdpath "data" .. "/mason/bin/"
+local mason_pkg = vim.fn.stdpath "data" .. "/mason/packages/"
 
-local function node_cmd(script)
-  return { node_bin, mason_bin .. script, "--stdio" }
+local function node_cmd(script, max_mb)
+  return { node_bin, "--max-old-space-size=" .. (max_mb or 256), mason_bin .. script, "--stdio" }
 end
+
+local function find_bun()
+  for _, c in ipairs {
+    vim.fn.expand "~/.local/share/mise/installs/bun/latest/bin/bun",
+    vim.fn.expand "~/.bun/bin/bun",
+    "bun",
+  } do
+    if vim.fn.executable(c) == 1 then return c end
+  end
+end
+
+local bun_bin = find_bun()
 
 -- Disable formatting for node servers — Prettier/conform handles it
 local function no_format(client)
@@ -136,9 +143,17 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
+local ts_ls_js = mason_pkg
+  .. "typescript-language-server/node_modules/typescript-language-server/lib/cli.mjs"
+
 vim.lsp.config("ts_ls", {
-  cmd = node_cmd "typescript-language-server",
-  init_options = { preferences = { allowJs = true, checkJs = true } },
+  cmd = (bun_bin and vim.fn.filereadable(ts_ls_js) == 1)
+    and { bun_bin, ts_ls_js, "--stdio" }
+    or  node_cmd("typescript-language-server", 512),
+  init_options = {
+    preferences = { allowJs = true, checkJs = true },
+    tsserver    = { maxTsServerMemory = 2048 },  -- cap the tsserver child process (MB)
+  },
 })
 vim.lsp.config("cssls",  { cmd = node_cmd "vscode-css-language-server" })
 vim.lsp.config("jsonls", { cmd = node_cmd "vscode-json-language-server" })
