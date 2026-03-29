@@ -143,7 +143,19 @@ return {
       }
     end,
   },
-
+  {
+    "marcussimonsen/let-it-snow.nvim",
+    cmd = "LetItSnow", -- Wait with loading until command is run
+    opts = {},
+  },
+  {
+    "tamton-aquib/duck.nvim",
+    keys = {
+      { "<leader>dd", function() require("duck").hatch("🐈") end, desc = "Hatch a cat" },
+      { "<leader>dk", function() require("duck").cook() end, desc = "Cook a cat" },
+      { "<leader>da", function() require("duck").cook_all() end, desc = "Cook all cats" },
+    },
+  },
   -- {
   --   "samjwill/nvim-unception",
   --   init = function()

@@ -39,15 +39,44 @@ local servers = {
   -- C/C++ development
   "cmake",
   "clangd",
+
+  -- Rust
+  "rust_analyzer",
 }
 
 -- Setup servers with default config
 for _, lsp in ipairs(servers) do
-  vim.lsp.config(lsp, {
+  local config = {
     on_attach = nvlsp.on_attach,
     on_init = nvlsp.on_init,
     capabilities = nvlsp.capabilities,
-  })
+  }
+
+  -- Special config for lua_ls to recognize Neovim APIs
+  if lsp == "lua_ls" then
+    config.settings = {
+      Lua = {
+        runtime = {
+          version = "LuaJIT",
+        },
+        diagnostics = {
+          globals = { "vim", "Snacks" }, -- Recognize vim and Snacks as globals
+        },
+        workspace = {
+          library = {
+            vim.env.VIMRUNTIME,
+            "${3rd}/luv/library",
+          },
+          checkThirdParty = false,
+        },
+        telemetry = {
+          enable = false,
+        },
+      },
+    }
+  end
+
+  vim.lsp.config(lsp, config)
   vim.lsp.enable(lsp)
 end
 
