@@ -31,6 +31,8 @@ vim.api.nvim_create_autocmd("BufRead", {
           opts.buffer = bufnr
           vim.keymap.set(mode, l, r, opts)
         end
+        map("n", "<leader>hn", gs.next_hunk, { desc = "Next hunk" })
+        map("n", "<leader>hp", gs.prev_hunk, { desc = "Prev hunk" })
         map("n", "<leader>hr", gs.reset_hunk, { desc = "Reset hunk" })
         map("v", "<leader>hr", function()
           gs.reset_hunk { vim.fn.line ".", vim.fn.line "v" }

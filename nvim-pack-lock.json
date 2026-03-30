@@ -144,6 +144,10 @@
       "rev": "fe079c2bd894a5ee70b62f23d819620ef40c4949",
       "src": "https://github.com/echasnovski/mini.pick"
     },
+    "neo-tree.nvim": {
+      "rev": "84c75e7a7e443586f60508d12fc50f90d9aee14e",
+      "src": "https://github.com/nvim-neo-tree/neo-tree.nvim"
+    },
     "noice.nvim": {
       "rev": "7bfd942445fb63089b59f97ca487d605e715f155",
       "src": "https://github.com/folke/noice.nvim"
