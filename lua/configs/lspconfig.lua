@@ -77,7 +77,7 @@ vim.lsp.enable {
   "terraformls",
   "yamlls",
   "marksman",
-  "ts_ls",
+  "vtsls",
   "cssls",
   "jsonls",
   "html",
@@ -157,7 +157,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
     if not client then
       return
     end
-    if vim.tbl_contains({ "ts_ls", "cssls", "jsonls", "html" }, client.name) then
+    if vim.tbl_contains({ "vtsls", "cssls", "jsonls", "html" }, client.name) then
       no_format(client)
     end
     if client.name == "eslint" then
@@ -171,20 +171,38 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
-local ts_ls_js = mason_pkg .. "typescript-language-server/node_modules/typescript-language-server/lib/cli.mjs"
-
-vim.lsp.config("ts_ls", {
-  cmd = (bun_bin and vim.fn.filereadable(ts_ls_js) == 1) and { bun_bin, ts_ls_js, "--stdio" }
-    or node_cmd("typescript-language-server", 512),
-  init_options = {
-    preferences = { allowJs = true, checkJs = true },
-    tsserver = { maxTsServerMemory = 2048 }, -- cap the tsserver child process (MB)
+-- vtsls: VS Code-compatible TS server (handles vue + ts/js as fallback)
+local vtsls_js = mason_pkg .. "vtsls/node_modules/@vtsls/language-server/bin/vtsls.js"
+vim.lsp.config("vtsls", {
+  cmd = (bun_bin and vim.fn.filereadable(vtsls_js) == 1)
+      and { bun_bin, "--max-old-space-size=2048", vtsls_js, "--stdio" }
+    or node_cmd("vtsls", 2048),
+  filetypes = { "vue" },
+  settings = {
+    vtsls = { enableMoveToFileCodeAction = true, autoUseWorkspaceTsdk = true },
+    typescript = {
+      preferences = { quoteStyle = "single" },
+      inlayHints = { parameterNames = { enabled = "literals" } },
+      suggest = { completeFunctionCalls = false },
+      tsserver = { maxTsServerMemory = 2048 },
+    },
+    javascript = {
+      preferences = { quoteStyle = "single" },
+    },
   },
 })
-vim.lsp.config("cssls", { cmd = bun_cmd "vscode-css-language-server" })
-vim.lsp.config("jsonls", { cmd = bun_cmd "vscode-json-language-server" })
-vim.lsp.config("html", { cmd = bun_cmd "vscode-html-language-server" })
-vim.lsp.config("eslint", { cmd = bun_cmd "vscode-eslint-language-server" })
+local function vscode_ls_cmd(pkg, entry, max_mb)
+  local js = mason_pkg .. pkg .. "/node_modules/vscode-langservers-extracted/lib/" .. entry
+  if bun_bin and vim.fn.filereadable(js) == 1 then
+    return { bun_bin, "--max-old-space-size=" .. (max_mb or 256), js, "--stdio" }
+  end
+  return bun_cmd(pkg:gsub("-lsp$", ""):gsub("^", "vscode-") .. "-language-server", max_mb)
+end
+
+vim.lsp.config("cssls", { cmd = vscode_ls_cmd("css-lsp", "css-language-server/cssServer.js") })
+vim.lsp.config("jsonls", { cmd = vscode_ls_cmd("json-lsp", "json-language-server/jsonServer.js") })
+vim.lsp.config("html", { cmd = vscode_ls_cmd("html-lsp", "html-language-server/htmlServer.js") })
+vim.lsp.config("eslint", { cmd = vscode_ls_cmd("eslint-lsp", "eslint-language-server/eslintServer.js") })
 
 -- ── Diagnostics display ───────────────────────────────────────────────────────
 

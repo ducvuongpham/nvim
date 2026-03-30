@@ -192,26 +192,13 @@ require("trouble").setup {
 vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
   once = true,
   callback = function()
-    local function ufo_provider(bufnr)
-      local function fallback(err, provider)
-        if type(err) == "string" and err:match "UfoFallbackException" then
-          return require("ufo").getFolds(bufnr, provider)
-        end
-        return require("promise").reject(err)
-      end
-      return require("ufo")
-        .getFolds(bufnr, "lsp")
-        :catch(function(err)
-          return fallback(err, "treesitter")
-        end)
-        :catch(function(err)
-          return fallback(err, "indent")
-        end)
-    end
-
     require("ufo").setup {
-      provider_selector = function()
-        return ufo_provider
+      -- Simple table provider avoids promise-chain reentrancy inside the decorator
+      provider_selector = function(_, filetype, _)
+        if filetype == "NvimTree" then return "" end
+        local lang = vim.treesitter.language.get_lang(filetype) or filetype
+        local has_folds = vim.treesitter.query.get(lang, "folds") ~= nil
+        return has_folds and { "lsp", "treesitter" } or { "lsp", "indent" }
       end,
       fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
         local suffix = (" 󰁂 %d "):format(endLnum - lnum)

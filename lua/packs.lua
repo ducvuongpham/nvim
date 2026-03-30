@@ -77,6 +77,7 @@ vim.pack.add({
   { src = "https://github.com/echasnovski/mini.nvim" },
 
   -- AI / coding
+  { src = "https://github.com/pmizio/typescript-tools.nvim" },
   { src = "https://github.com/zbirenbaum/copilot.lua" },
   { src = "https://github.com/olimorris/codecompanion.nvim" },
   { src = "https://github.com/coder/claudecode.nvim" },

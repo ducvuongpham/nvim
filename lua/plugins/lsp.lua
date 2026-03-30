@@ -14,7 +14,7 @@ vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
     local registry = require "mason-registry"
     registry.refresh(function()
       for _, tool in ipairs {
-        "prettier", "typescript-language-server",
+        "prettier", "vtsls",
         "html-lsp", "css-lsp", "json-lsp", "eslint-lsp",
         "gopls", "goimports", "gofumpt", "golangci-lint",
         "clangd", "clang-format",
@@ -30,6 +30,20 @@ vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
 
     -- LSP server configuration (vim.lsp.config + vim.lsp.enable)
     require "configs.lspconfig"
+
+    -- typescript-tools: hooks directly into tsserver (replaces ts_ls for ts/js)
+    require("typescript-tools").setup {
+      settings = {
+        tsserver_max_memory        = 2048,
+        expose_as_code_action      = "all",
+        complete_function_calls    = false,
+        jsx_close_tag              = { enable = true },
+      },
+      on_attach = function(client)
+        client.server_capabilities.documentFormattingProvider      = false
+        client.server_capabilities.documentRangeFormattingProvider = false
+      end,
+    }
 
     -- none-ls: extra diagnostics / formatting sources
     require("null-ls").setup(require "configs.null-ls")

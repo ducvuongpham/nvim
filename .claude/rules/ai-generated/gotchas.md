@@ -11,3 +11,5 @@ Several subtle issues arise from the fact that `nvim` is managed by `mise` rathe
 - `gopls` (Go LSP) already shares a daemon across Neovim instances automatically — no special config is needed; do not add socket or daemon logic for gopls
 - Node-based LSP servers (`ts_ls`, `cssls`, `jsonls`, `html`, `eslint`) cannot be shared across Neovim instances — each instance correctly spawns its own server scoped to its project root
 - Running `ts_ls` with bun saves memory, but the TypeScript compiler child process (`tsserver`) spawned inside `ts_ls` is controlled via `init_options.tsserver.maxTsServerMemory`, not by the bun runtime
+- `ts_ls` accumulates memory over long sessions (can reach ~1.39GB) — the practical fix is `:LspRestart`, not switching Node versions; Node version does not affect this growth
+- `copilot.lua` Tab-key integration uses `require("copilot.suggestion").is_visible()` / `.accept()` — do NOT use the VimL `vim.fn["copilot#Accept"]` API, which only works with `github/copilot.vim`
