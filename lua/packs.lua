@@ -19,7 +19,7 @@ vim.pack.add({
   { src = "https://github.com/kkharji/sqlite.lua" },
 
   -- UI
-  { src = "https://github.com/catppuccin/nvim",             name = "catppuccin" },
+  { src = "https://github.com/catppuccin/nvim",                            name = "catppuccin" },
   { src = "https://github.com/nvim-lualine/lualine.nvim" },
   { src = "https://github.com/SmiteshP/nvim-navic" },
   { src = "https://github.com/utilyre/barbecue.nvim" },
@@ -45,7 +45,7 @@ vim.pack.add({
 
   -- Telescope
   { src = "https://github.com/nvim-telescope/telescope.nvim" },
-  { src = "https://github.com/nvim-telescope/telescope-fzf-native.nvim",    name = "telescope-fzf-native.nvim" },
+  { src = "https://github.com/nvim-telescope/telescope-fzf-native.nvim",   name = "telescope-fzf-native.nvim" },
   { src = "https://github.com/nvim-telescope/telescope-smart-history.nvim" },
 
   -- Completion
@@ -81,7 +81,7 @@ vim.pack.add({
   { src = "https://github.com/olimorris/codecompanion.nvim" },
   { src = "https://github.com/coder/claudecode.nvim" },
   { src = "https://github.com/j-hui/fidget.nvim" },
-  { src = "https://github.com/echasnovski/mini.pick",                       name = "mini.pick" },
+  { src = "https://github.com/echasnovski/mini.pick",                      name = "mini.pick" },
   { src = "https://github.com/ibhagwan/fzf-lua" },
   { src = "https://github.com/ravitemer/mcphub.nvim" },
 

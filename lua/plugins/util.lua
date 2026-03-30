@@ -93,10 +93,9 @@ require("flatten").setup {
 }
 
 -- ── Fun ───────────────────────────────────────────────────────────────────────
--- :LetItSnow  — loaded on command (plugin/ sourced via packadd on demand)
+-- :LetItSnow
 vim.api.nvim_create_user_command("LetItSnow", function()
-  vim.cmd.packadd "let-it-snow.nvim"
-  vim.cmd "LetItSnow"
+  require("let-it-snow").let_it_snow()
 end, {})
 
 local map = vim.keymap.set
