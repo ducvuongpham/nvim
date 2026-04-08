@@ -64,8 +64,10 @@ g.loaded_ruby_provider = 0
 local sep   = vim.fn.has "win32" ~= 0 and "\\" or "/"
 local delim = vim.fn.has "win32" ~= 0 and ";" or ":"
 local mise_shims = vim.fn.expand "~/.local/share/mise/shims"
+local node_bin   = vim.fn.expand "~/.local/share/mise/installs/node/latest/bin"
 local mason_bin  = table.concat({ vim.fn.stdpath "data", "mason", "bin" }, sep)
-vim.env.PATH = mise_shims .. delim .. mason_bin .. delim .. vim.env.PATH
+-- node_bin before mise_shims: the npm/node shims are a broken circular symlink (ELOOP)
+vim.env.PATH = node_bin .. delim .. mise_shims .. delim .. mason_bin .. delim .. vim.env.PATH
 
 -- Session options (required by auto-session for correct filetype/highlight restore)
 o.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"

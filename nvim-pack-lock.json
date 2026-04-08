@@ -128,6 +128,14 @@
       "rev": "a923f5fc5ba36a3b17e289dc35dc17f66d0548ee",
       "src": "https://github.com/iamcco/markdown-preview.nvim"
     },
+    "mason-lspconfig.nvim": {
+      "rev": "037398b9ce4a53ba48d5f94765c641a1fd16d906",
+      "src": "https://github.com/mason-org/mason-lspconfig.nvim"
+    },
+    "mason-tool-installer.nvim": {
+      "rev": "443f1ef8b5e6bf47045cb2217b6f748a223cf7dc",
+      "src": "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim"
+    },
     "mason.nvim": {
       "rev": "44d1e90e1f66e077268191e3ee9d2ac97cc18e65",
       "src": "https://github.com/williamboman/mason.nvim"
@@ -163,6 +171,10 @@
     "nui.nvim": {
       "rev": "de740991c12411b663994b2860f1a4fd0937c130",
       "src": "https://github.com/MunifTanjim/nui.nvim"
+    },
+    "nvim-autopairs": {
+      "rev": "59bce2eef357189c3305e25bc6dd2d138c1683f5",
+      "src": "https://github.com/windwp/nvim-autopairs"
     },
     "nvim-cmp": {
       "rev": "a1d504892f2bc56c2e79b65c6faded2fd21f3eca",
@@ -271,6 +283,10 @@
     "tiny-inline-diagnostic.nvim": {
       "rev": "ba133b3e932416e4b9507095731a6d7276878fe8",
       "src": "https://github.com/rachartier/tiny-inline-diagnostic.nvim"
+    },
+    "todo-comments.nvim": {
+      "rev": "31e3c38ce9b29781e4422fc0322eb0a21f4e8668",
+      "src": "https://github.com/folke/todo-comments.nvim"
     },
     "trouble.nvim": {
       "rev": "bd67efe408d4816e25e8491cc5ad4088e708a69a",

@@ -199,6 +199,10 @@ local function vscode_ls_cmd(pkg, entry, max_mb)
   return bun_cmd(pkg:gsub("-lsp$", ""):gsub("^", "vscode-") .. "-language-server", max_mb)
 end
 
+-- bashls: override to use mise node — the mason wrapper uses #!/usr/bin/env node
+-- which resolves to an old system node (causing WebAssembly externref errors)
+vim.lsp.config("bashls", { cmd = { node_bin, mason_bin .. "bash-language-server", "start" } })
+
 vim.lsp.config("cssls", { cmd = vscode_ls_cmd("css-lsp", "css-language-server/cssServer.js") })
 vim.lsp.config("jsonls", { cmd = vscode_ls_cmd("json-lsp", "json-language-server/jsonServer.js") })
 vim.lsp.config("html", { cmd = vscode_ls_cmd("html-lsp", "html-language-server/htmlServer.js") })
